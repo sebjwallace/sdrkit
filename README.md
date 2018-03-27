@@ -1,2 +1,2 @@
-# encoda
-Sparse Distributed Encoding library
+# SDRKit
+Sparse Distributed Representation library
