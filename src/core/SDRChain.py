@@ -1,9 +1,9 @@
-from .AssociativeMap import *
+from .SDRMap import *
 
-class AssociativeChain:
+class SDRChain:
 
     def __init__(self):
-        self.map = AssociativeMap()
+        self.map = SDRMap()
         self.arrs = []
         self.prev = None
 

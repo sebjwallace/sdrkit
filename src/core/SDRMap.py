@@ -1,10 +1,10 @@
-class AssociativeMap:
+class SDRMap:
 
     """
     This is an implementation of the pattern-association network
     outlined by Rolls in Cerebral Cortex - Principles Of Operation
 
-    ArrayMap is treated as a key-value pair data structure. The key
+    SDRMap is treated as a key-value pair data structure. The key
     is an array of indices that map to a value which is also an array
     of indices.
 

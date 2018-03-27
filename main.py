@@ -1,6 +1,6 @@
 from src.core.encoders.IntegerEncoder import *
 from src.core.SDR import *
-from src.core.AssociativeChain import *
+from src.core.SDRChain import *
 
 encoder = IntegerEncoder()
 
@@ -28,7 +28,7 @@ print('match')
 print(sdr.match([[1,2,3,4,5,6,7,8],[1,2],[1,2,3,4]]))
 
 print('chain')
-chain = AssociativeChain()
+chain = SDRChain()
 chain.append([1,2,3,4,5,6,7,8])
 chain.append([10,11,12,13,14,15])
 chain.append([21,22,23,24,25])
