@@ -34,3 +34,7 @@ chain.append([10,11,12,13,14,15])
 chain.append([21,22,23,24,25])
 print(chain.next([1,2,3,4,5,6,7,8]))
 print(chain.next())
+
+print('random')
+sdr.random()
+print(sdr.indices)

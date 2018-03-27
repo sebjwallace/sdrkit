@@ -1,10 +1,17 @@
 from math import floor
+from random import randint
 
 class SDR:
 
     def __init__(self):
         self.indices = []
         self.range = 256
+
+    def random(self,size = 8):
+        self.indices = []
+        r = self.range / size
+        for i in range(size):
+            self.indices.append(int((r*i)+randint(0,r)))
 
     def union(self,arrs):
         return sum(arrs,self.indices)
