@@ -1,6 +1,7 @@
 from src.core.encoders.IntegerEncoder import *
 from src.core.SDR import *
 from src.core.SDRChain import *
+from src.core.SDRComposite import *
 
 encoder = IntegerEncoder()
 
@@ -38,3 +39,9 @@ print(chain.next())
 print('random')
 sdr.random()
 print(sdr.indices)
+
+print('composite')
+comp = SDRComposite()
+comp.add([1,2,3,4])
+comp.subtract([3,4,5,7])
+print(comp.compile())

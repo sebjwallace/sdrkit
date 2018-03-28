@@ -29,7 +29,7 @@ class SDRMap:
     def get(self,key):
         sum = {}
         for k in key:
-            weights = self.weights[k]
+            weights = self.weights.get(k) or {}
             for index, weight in weights.items():
                 sum[index] = (sum.get(index) or 0) + weight
         val = []

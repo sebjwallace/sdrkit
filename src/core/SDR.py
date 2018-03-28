@@ -3,9 +3,25 @@ from random import randint
 
 class SDR:
 
+    @staticmethod
+    def Overlap(arr1,arr2):
+        return [i for i in arr1 if i in arr2]
+
+    @staticmethod
+    def Union(arrs):
+        return sum(arrs,[])
+
+    @staticmethod
+    def Subtract(arr1,arr2):
+        return [i for i in arr1 if i not in arr2]
+
+    @staticmethod
+    def Difference(arr1,arr2):
+        return [i for i in arr1 + arr2 if i not in SDR.Overlap(arr1,arr2)]
+
     def __init__(self):
         self.indices = []
-        self.range = 256
+        self.range = 2048
 
     def random(self,size = 8):
         self.indices = []
@@ -17,13 +33,13 @@ class SDR:
         return sum(arrs,self.indices)
 
     def overlap(self,arr):
-        return [i for i in self.indices if i in arr]
+        return SDR.Overlap(self.indices,arr)
 
     def subtract(self,arr):
-        return [i for i in self.indices if i not in arr]
+        return SDR.Subtract(self.indices,arr)
 
     def difference(self,arr):
-        return [i for i in self.indices + arr if i not in self.overlap(arr)]
+        return SDR.Difference(self.indices,arr)
 
     def subsample(self,size = 8):
         indices = sorted(list(self.indices))
@@ -37,6 +53,9 @@ class SDR:
 
     def sort(self,arrs):
         return sorted(arrs,key=lambda arr: self.overlap(arr))
+
+    def fromIndexArray(self,arr):
+        self.indices = arr
 
     def toBinaryArray(self):
         arr = [0] * self.range
