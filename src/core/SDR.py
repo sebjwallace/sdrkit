@@ -22,6 +22,7 @@ class SDR:
     def __init__(self):
         self.indices = []
         self.range = 2048
+        self.random()
 
     def random(self,size = 8):
         self.indices = []
