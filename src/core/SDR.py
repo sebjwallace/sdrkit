@@ -19,9 +19,9 @@ class SDR:
     def Difference(arr1,arr2):
         return [i for i in arr1 + arr2 if i not in SDR.Overlap(arr1,arr2)]
 
-    def __init__(self):
+    def __init__(self,range = 2048):
         self.indices = []
-        self.range = 2048
+        self.range = range
         self.random()
 
     def random(self,size = 8):
@@ -55,8 +55,17 @@ class SDR:
     def sort(self,arrs):
         return sorted(arrs,key=lambda arr: self.overlap(arr))
 
+    def density(self):
+        return len(self.indices) / self.range
+
+    def sparsity(self):
+        return 1 - self.density()
+
     def fromIndexArray(self,arr):
         self.indices = arr
+
+    def toIndexArray(self):
+        return self.indices
 
     def toBinaryArray(self):
         arr = [0] * self.range
