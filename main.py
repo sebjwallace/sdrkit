@@ -41,7 +41,7 @@ sdr.random()
 print(sdr.indices)
 
 print('composite')
-comp = SDRComposite()
+comp = SDRStack()
 comp.add([1,2,3,4])
 comp.subtract([3,4,5,7])
 print(comp.compile())
