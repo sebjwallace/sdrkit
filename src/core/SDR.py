@@ -19,6 +19,14 @@ class SDR:
     def Difference(arr1,arr2):
         return [i for i in arr1 + arr2 if i not in SDR.Overlap(arr1,arr2)]
 
+    @staticmethod
+    def Subsample(arr,size = 8):
+        indices = sorted(arr)
+        out = []
+        for i in range(size):
+            out.append(indices[i * floor(len(indices) / size)])
+        return out
+
     def __init__(self,range = 2048):
         self.indices = []
         self.range = range
@@ -43,11 +51,7 @@ class SDR:
         return SDR.Difference(self.indices,arr)
 
     def subsample(self,size = 8):
-        indices = sorted(list(self.indices))
-        out = []
-        for i in range(size):
-            out.append(indices[i*floor(len(indices)/size)])
-        return out
+        return SDR.Subsample(self.indices,size)
 
     def match(self,arrs):
         return self.sort(arrs)[-1]

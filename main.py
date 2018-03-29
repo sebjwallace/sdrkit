@@ -1,7 +1,7 @@
 from src.core.encoders.IntegerEncoder import *
 from src.core.SDR import *
 from src.core.SDRChain import *
-from src.core.SDRComposite import *
+from src.core.SDRStack import *
 
 encoder = IntegerEncoder()
 

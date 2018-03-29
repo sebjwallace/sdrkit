@@ -1,6 +1,6 @@
 from .SDR import *
 
-class SDRComposite:
+class SDRStack:
     
     def __init__(self):
         self.arrs = []
@@ -8,7 +8,9 @@ class SDRComposite:
     def append(self,arr,operation = 'add'):
         self.arrs.append({
             'operation': operation,
-            'arr': arr
+            'arr': arr,
+            'map': None,
+            'stack': None
         })
 
     def add(self,arr):
