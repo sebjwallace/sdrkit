@@ -10,7 +10,8 @@ class SDRStack:
             'operation': operation,
             'arr': arr,
             'map': None,
-            'stack': None
+            'stack': None,
+            'classifier': None
         })
 
     def add(self,arr):

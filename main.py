@@ -2,6 +2,8 @@ from src.core.encoders.IntegerEncoder import *
 from src.core.SDR import *
 from src.core.SDRChain import *
 from src.core.SDRStack import *
+from src.core.SDRDictionary import *
+from src.core.SDRClassifier import *
 
 encoder = IntegerEncoder()
 
@@ -45,3 +47,31 @@ comp = SDRStack()
 comp.add([1,2,3,4])
 comp.subtract([3,4,5,7])
 print(comp.compile())
+
+print('dictionary')
+cat = SDR()
+dog = SDR()
+dict = SDRDictionary()
+dict.set(cat.indices,'cat')
+dict.set(dog.indices,'dog')
+print(dict.get(cat.indices))
+print(dict.get(SDR.Subsample(cat.indices,5)))
+print(dict.get(dog.indices))
+print(dict.get(SDR.Subsample(dog.indices,5)))
+
+print('classifier')
+
+c1 = SDRClassifier(16)
+a1 = SDR()
+b1 = SDR()
+o1 = c1.get(SDR.Union([a1.indices,b1.indices]))
+
+c2 = SDRClassifier(16)
+a2 = SDR()
+b2 = SDR()
+o2 = c2.get(SDR.Union([a2.indices,b2.indices]))
+
+c3 = SDRClassifier(16)
+o3 = c3.get(SDR.Union([o1,o2]))
+
+print(o3)

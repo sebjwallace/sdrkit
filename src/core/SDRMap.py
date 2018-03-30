@@ -13,9 +13,9 @@ class SDRMap:
     in the key could be different but still able to retrieve the value.
     """
 
-    def __init__(self):
+    def __init__(self,size = 8):
         self.weights = {}
-        self.size = 8
+        self.size = size
         self.threshold = 0.5
 
     def set(self,key,val):
