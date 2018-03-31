@@ -32,6 +32,9 @@ class SDR:
         self.range = range
         self.random()
 
+    def __call__(self):
+        return self.indices
+
     def random(self,size = 8):
         self.indices = []
         r = self.range / size
