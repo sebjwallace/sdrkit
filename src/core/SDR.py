@@ -27,12 +27,38 @@ class SDR:
             out.append(indices[i * floor(len(indices) / size)])
         return out
 
-    def __init__(self,range = 2048):
-        self.indices = []
-        self.range = range
-        self.random()
+    @staticmethod
+    def BinaryToIndexArray(arr):
+        indices = []
+        for i, b in enumerate(arr):
+            if (b == 1):
+                indices.append(i)
+        return indices
 
-    def __call__(self):
+    @staticmethod
+    def Chunk(binaryArray,size=3,offset=1,asBinary=False):
+        chunks = []
+        for i in range(0, len(binaryArray), offset):
+            bin = binaryArray[i:i + size]
+            if (asBinary):
+                chunks.append(bin)
+            else:
+                indices = SDR.BinaryToIndexArray(bin)
+                if (len(indices)):
+                    chunks.append(indices)
+        return chunks
+
+    def __init__(self,range=2048,indices=None,binaryArray=None):
+        self.indices = indices or []
+        self.range = range
+        if(binaryArray != None):
+            self.fromBinaryArray(binaryArray)
+        if(len(self.indices) == 0):
+            self.random()
+
+    def __call__(self,indices = None):
+        if(indices != None):
+            self.indices = indices
         return self.indices
 
     def random(self,size = 8):
@@ -62,6 +88,9 @@ class SDR:
     def sort(self,arrs):
         return sorted(arrs,key=lambda arr: self.overlap(arr))
 
+    def chunk(self,size,offset,asBinary=False):
+        return SDR.Chunk(binaryArray=self.toBinaryArray(),size=size,offset=offset,asBinary=asBinary)
+
     def density(self):
         return len(self.indices) / self.range
 
@@ -81,7 +110,4 @@ class SDR:
         return arr
 
     def fromBinaryArray(self,arr):
-        self.indices = []
-        for i, b in enumerate(arr):
-            if(b == 1):
-                self.indices.append(i)
+        self.indices = SDR.BinaryToIndexArray(arr)

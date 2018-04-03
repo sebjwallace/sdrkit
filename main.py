@@ -4,6 +4,7 @@ from src.core.SDRChain import *
 from src.core.SDRStack import *
 from src.core.SDRDictionary import *
 from src.core.SDRClassifier import *
+from src.core.SDRChunkMap import *
 
 encoder = IntegerEncoder()
 
@@ -75,3 +76,13 @@ c3 = SDRClassifier(16)
 o3 = c3.get(SDR.Union([o1,o2]))
 
 print(o3)
+
+print('chunking')
+a = SDR(range=8,binaryArray=[1,0,1,0,1,0,1,0])
+print(a.chunk(size=2,offset=2,asBinary=False))
+
+print('chunk map')
+sdr = SDR(range=16,binaryArray=[1,1,1,1,1,1,0,0,1,1,0,0,1,1,1,1])
+chunkmap = SDRChunkMap(sdr)
+chunkmap.chunk()
+print(chunkmap.map.get([0,1,2,3]))
