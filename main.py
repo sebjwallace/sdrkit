@@ -4,7 +4,6 @@ from src.core.SDRChain import *
 from src.core.SDRStack import *
 from src.core.SDRDictionary import *
 from src.core.SDRClassifier import *
-from src.core.SDRChunkMap import *
 
 encoder = IntegerEncoder()
 
@@ -12,7 +11,7 @@ print(encoder.encode(124))
 
 sdr = SDR()
 
-sdr.fromBinaryArray([0,1,1,0,0,1])
+sdr.fromBinaryArray([0,1,1,0,0,1,0,1])
 print(sdr.indices)
 
 print('union')
@@ -40,6 +39,7 @@ print(chain.next([1,2,3,4,5,6,7,8]))
 print(chain.next())
 
 print('random')
+sdr = SDR()
 sdr.random()
 print(sdr.indices)
 
@@ -81,8 +81,14 @@ print('chunking')
 a = SDR(range=8,binaryArray=[1,0,1,0,1,0,1,0])
 print(a.chunk(size=2,offset=2,asBinary=False))
 
-print('chunk map')
-sdr = SDR(range=16,binaryArray=[1,1,1,1,1,1,0,0,1,1,0,0,1,1,1,1])
-chunkmap = SDRChunkMap(sdr)
-chunkmap.chunk()
-print(chunkmap.map.get([0,1,2,3]))
+dict = SDRDictionary()
+dict.map.size = 4
+dict.set([0,1,2,3],'bottle')
+dict.set([7,8,9,10],'ball')
+dict.set([10,11,12,13],'red')
+dict.set([20,21,22,23],'blue')
+dict.set([10,11,12,13,0,1,2,3],'red bottle')
+dict.set([20,21,22,23,0,1,2,3],'blue bottle')
+dict.set([10,11,12,13,7,8,9,10],'red ball')
+dict.set([20,21,22,23,7,8,9,10],'blue ball')
+print(dict.get([0,1,2,3]))

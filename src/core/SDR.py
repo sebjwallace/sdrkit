@@ -88,7 +88,7 @@ class SDR:
     def sort(self,arrs):
         return sorted(arrs,key=lambda arr: self.overlap(arr))
 
-    def chunk(self,size,offset,asBinary=False):
+    def chunk(self,size,offset=1,asBinary=False):
         return SDR.Chunk(binaryArray=self.toBinaryArray(),size=size,offset=offset,asBinary=asBinary)
 
     def density(self):
@@ -111,3 +111,4 @@ class SDR:
 
     def fromBinaryArray(self,arr):
         self.indices = SDR.BinaryToIndexArray(arr)
+        self.range = len(arr)
