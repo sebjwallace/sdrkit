@@ -36,6 +36,14 @@ class SDR:
         return indices
 
     @staticmethod
+    def Sort(arr1,arrs):
+        return sorted(arrs, key=lambda arr: SDR.Overlap(arr1,arr))
+
+    @staticmethod
+    def Match(arr1,arrs):
+        return SDR.Sort(arr1,arrs)[-1]
+
+    @staticmethod
     def Chunk(binaryArray,size=3,offset=1,asBinary=False):
         chunks = []
         for i in range(0, len(binaryArray), offset):
@@ -83,10 +91,10 @@ class SDR:
         return SDR.Subsample(self.indices,size)
 
     def match(self,arrs):
-        return self.sort(arrs)[-1]
+        return SDR.Match(self.indices,arrs)
 
     def sort(self,arrs):
-        return sorted(arrs,key=lambda arr: self.overlap(arr))
+        return SDR.sort(self.indices,arrs)
 
     def chunk(self,size,offset=1,asBinary=False):
         return SDR.Chunk(binaryArray=self.toBinaryArray(),size=size,offset=offset,asBinary=asBinary)
