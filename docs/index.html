@@ -1,1 +1,88 @@
-<html><body>Docs</body></html>
+<html>
+    <body>
+        <script src="../dist/bundle.js"></script>
+        <script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="./prism.css" rel="stylesheet">
+        <script src="./prism.js"></script>
+
+        <script>
+            function print(id,a,b){
+                $('[nb="'+id+'"]').after(
+                    '<div class="notebook-print">'
+                        + a.toString() + '&nbsp;' + (b || '').toString()
+                    + '</div>'
+                )
+            }
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Sparse Distributed Representations (SDRs)</h4>
+
+        <p>
+            An SDR is a Sparse Distributed Representation. Within a range of bits there is only a small percentage active. For example, if there was a range of bits of the size 128, the active bits will be sparse.
+        </p>
+        <script nb="1">
+            var sdr = new SDRKit.SDR({range:128});;
+            print(1,'indicies: ',sdr.indices)
+            print(1,'density: ',sdr.density())
+        </script>
+        <script>
+            SDRKit.SDRViz.row({arr:sdr.toBinaryArray()})
+        </script>
+
+        <p>
+            Unions are the combinations of SDRs. Together they increase the density.
+        </p>
+
+        <script nb="2">
+            var sdrb = new SDRKit.SDR({range:128})
+            var union = SDRKit.SDR.IndexArrayToBinary(SDRKit.SDR.Union([sdr.indices,sdrb.indices]),128)
+        </script>
+        <script>
+            SDRKit.SDRViz.row({arr:sdr.toBinaryArray()})
+            SDRKit.SDRViz.row({arr:sdrb.toBinaryArray()})
+            SDRKit.SDRViz.row({arr:union})
+        </script>
+
+        <!-- SETUP -->
+
+        <script>
+            $('[nb]').each(function(){
+                $(this).after(
+                    '<pre class="notebook"><code class="language-javascript">'
+                        + $(this).html().split(';;').join('<br>')
+                    + '</code></pre>'
+                )
+            })
+        </script>
+        <style>
+            body{
+                font-family: Roboto;
+            }
+            .notebook, .notebook-print, .canvas-wrap{
+                padding: 5px;
+                background: #f7f7f7;
+                border: 1px solid lightgray;
+                font-size: 0.9em;
+            }
+            .notebook-print{
+                background: #e7e7e7;
+                border-top: none;
+            }
+            code[class*="language-"], pre[class*="language-"]{
+                white-space: pre-line !important;
+                line-height: 1.2;
+            }
+            pre[class*="language-"]{
+                padding: 4px;
+                margin: 0;
+            }
+        </style>
+    </body>
+</html>

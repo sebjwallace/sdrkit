@@ -44,12 +44,10 @@ module.exports = class SDR {
         return indices
     }
 
-    static IndexArrayToBinary(arr){
+    static IndexArrayToBinary(arr,range){
         const binary = []
-        for(var i = 0; i < this.range; i++)
-            binary[i] = 0
-        for(var i = 0; i < this.indices.length; i++)
-            binary[this.indices[i]] = 1
+        for(var i = 0; i < range; i++)
+            binary[i] = arr.indexOf(i) != -1 ? 1 : 0
         return binary
     }
 
@@ -133,7 +131,7 @@ module.exports = class SDR {
     }
 
     toBinaryArray(){
-        return SDR.IndexArrayToBinary(this.indices)
+        return SDR.IndexArrayToBinary(this.indices,this.range)
     }
 
 }
