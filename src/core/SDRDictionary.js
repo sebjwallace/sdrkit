@@ -27,7 +27,7 @@ module.exports = class SDRDictionary {
         if(secondKey && secondKey.length > 8){
             const vals = []
             for(var i = 0; i < this.secondKeys.length; i++){
-                const overlap = SDR.Intersect([secondKey,this.secondKeys[i]])
+                const overlap = SDR.AND([secondKey,this.secondKeys[i]])
                 if(overlap.length >= 8)
                     vals.push(this.dict[overlap.join()])
             }

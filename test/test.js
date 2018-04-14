@@ -32,6 +32,11 @@ describe('SDR Instance', () => {
         expect(sdr.indices).to.deep.equal([10,20,30,40,50,60,70,80])
     })
 
+    it('should initialise from a binary array', () => {
+        const sdr = new SDR({binaryArray:[1,0,1,1,0]})
+        expect(sdr.indices).to.deep.equal([0,2,3])
+    })
+
     it('should calculate the population of active bits', () => {
         const sdr = new SDR()
         expect(sdr.population()).to.equal(8)
@@ -108,55 +113,21 @@ describe('SDR Instance', () => {
         expect(sdr.xor([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
     })
 
-})
-
-/*
-describe('SDR', () => {
-
-    it('should create a union of many index arrays', () => {
-        expect(SDR.Union([[1,2],[3,4]])).to.deep.equal([1,2,3,4])
-    })
-
-    it('should create a union of many index arrays without duplicating indices that intersect', () => {
-        expect(SDR.Union([[1,1],[2,2]])).to.deep.equal([1,2])
-    })
-
-    it('should return only the bits that intersect', () => {
-        expect(SDR.Intersect([[1,2,3,4,5],[4,5,6,7,8]])).to.deep.equal([4,5])
-    })
-
-    it('should return only the bits that do not intersect', () => {
-        expect(SDR.Difference([[1,2,3,4,5],[4,5,6,7,8]])).to.deep.equal([1,2,3,6,7,8])
-    })
-
-    it('should return a subtraction of the second from the first', () => {
-        expect(SDR.Subtract([[1,2,3,4,5],[2,3,4]])).to.deep.equal([1,5])
-    })
-
     it('should return a subsample of the origional index array', () => {
-        expect(SDR.Subsample([1,2,3,4,5,6,7,8],{size:4})).to.deep.equal([1,3,5,7])
+        const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
+        expect(sdr.subsample(4)).to.deep.equal([1,3,5,7])
     })
 
     it('should return a sorted list of index array with the most similar at index 0', () => {
-        expect(SDR.Sort([1,2,3,4,5,6,7,8],[[1,2],[1,2,3],[1,2,3,4],[1,2,3,4,5]]))
+        const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
+        expect(sdr.sort([[1,2],[1,2,3],[1,2,3,4],[1,2,3,4,5]]))
             .to.deep.equal([[1,2,3,4,5],[1,2,3,4],[1,2,3],[1,2]])
     })
 
     it('should return a the most similar index array', () => {
-        expect(SDR.Match([1,2,3,4,5,6,7,8],[[1,2],[1,2,3],[1,2,3,4],[1,2,3,4,5]]))
+        const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
+        expect(sdr.match([[1,2],[1,2,3],[1,2,3,4],[1,2,3,4,5]]))
             .to.deep.equal([1,2,3,4,5])
-    })
-
-    it('should initialise with a random set of indices', () => {
-        expect(new SDR().indices.length).to.equal(8)
-    })
-
-    it('should initialise from a binary array', () => {
-        expect(new SDR({binaryArray:[1,0,1,1,0]}).indices).to.deep.equal([0,2,3])
-    })
-
-    it('should return indices from call', () => {
-        expect(new SDR({binaryArray:[1,0,1,1,0]}).get()).to.deep.equal([0,2,3])
     })
 
 })
@@ -164,15 +135,25 @@ describe('SDR', () => {
 describe('SDRMap', () => {
 
     it('should assign a key with a value', () => {
-        const map = new SDRMap()
+        let map = new SDRMap()
         map.set([1,2,3,4,5,6,7,8],[11,12,13,14,15,16,17,18])
         expect(map.get([1,2,3,4,5,6,7,8])).to.deep.equal([11,12,13,14,15,16,17,18])
+        const sdr1 = new SDR()
+        const sdr2 = new SDR()
+        map = new SDRMap()
+        map.set(sdr1.indices,sdr2.indices)
+        expect(map.get(sdr1.indices)).to.deep.equal(sdr2.indices)
     })
 
     it('should get value with missing bits', () => {
-        const map = new SDRMap()
+        let map = new SDRMap()
         map.set([1,2,3,4,5,6,7,8],[11,12,13,14,15,16,17,18])
         expect(map.get([2,3,4,5,7,8])).to.deep.equal([11,12,13,14,15,16,17,18])
+        const sdr1 = new SDR()
+        const sdr2 = new SDR()
+        map = new SDRMap()
+        map.set(sdr1.indices,sdr2.indices)
+        expect(map.get(sdr1.subsample(5))).to.deep.equal(sdr2.indices)
     })
 
     it('should get value with too many bits', () => {
@@ -191,6 +172,30 @@ describe('SDRMap', () => {
         const map = new SDRMap()
         map.set([1,2,3,4,5,6,7,8],[11,12,13,14,15,16,17,18])
         expect(map.get([2,3,4,7])).to.equal(null)
+    })
+
+    it('should set and get value with reoccuring indices', () => {
+        let map = new SDRMap()
+        map.set([1,2,3,4,5,6,7,8],[11,12,12,13,14,15,16,17,18,18])
+        expect(map.get([1,2,3,4,5,6,7,8])).to.deep.equal([11,12,12,13,14,15,16,17,18,18])
+        map = new SDRMap()
+        map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
+        expect(map.get([9,12,56,150,285,431,559,723])).to.deep.equal([2,2,2,2,104,108,204,204,307])
+        map = new SDRMap()
+    })
+
+    it('should set and get value with reoccuring indices and key with missing bits', () => {
+        let map = new SDRMap()
+        map.set([1,2,3,4,5,6,7,8],[11,12,12,13,14,15,16,17,18,18])
+        expect(map.get([1,3,4,5,7,8])).to.deep.equal([11,12,12,13,14,15,16,17,18,18])
+        map = new SDRMap()
+        map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
+        expect(map.get([9,12,56,285,723])).to.deep.equal([2,2,2,2,104,108,204,204,307])
+        map = new SDRMap()
+        const sdr = new SDR()
+        map.set(sdr.indices,[59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
+        expect(map.get(sdr.indices)).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
+        expect(map.get(sdr.subsample(5))).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
     })
 
 })
@@ -230,25 +235,24 @@ describe('SDRDictionary', () => {
 
 })
 
-describe('Graph', () => {
+// describe('Graph', () => {
 
-    it('should compute', () => {
-        const graph = Graph.Compute([
-            {id:1,type:'sdr',state:[1,2,3,4,5,6,7,8]},
-            {id:2,type:'sdr',state:[5,6,7,8,9,10,11,12]},
-            {id:3,type:'intersect',sources:[1,2]}
-        ])
-        expect(graph[2].state).to.deep.equal([5,6,7,8])
-    })
+//     it('should compute', () => {
+//         const graph = Graph.Compute([
+//             {id:1,type:'sdr',state:[1,2,3,4,5,6,7,8]},
+//             {id:2,type:'sdr',state:[5,6,7,8,9,10,11,12]},
+//             {id:3,type:'intersect',sources:[1,2]}
+//         ])
+//         expect(graph[2].state).to.deep.equal([5,6,7,8])
+//     })
 
-    it('can build a graph', () => {
-        const graph = new Graph()
-        const a = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
-        const b = graph.create({type:'sdr',state:[5,6,7,8,9,10,11,12]})
-        const c = graph.create({type:'intersect'})
-        graph.connect(a,c).connect(b,c)
-        expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
-    })
+//     it('can build a graph', () => {
+//         const graph = new Graph()
+//         const a = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
+//         const b = graph.create({type:'sdr',state:[5,6,7,8,9,10,11,12]})
+//         const c = graph.create({type:'intersect'})
+//         graph.connect(a,c).connect(b,c)
+//         expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
+//     })
 
-})
-*/
+// })

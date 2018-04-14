@@ -1,6 +1,14 @@
 
 module.exports = class SDR {
 
+    static Random(population,range){
+        const indices = []
+        const r = range / population
+        for(var i = 0; i < population; i++)
+            indices.push(Math.floor((r * i) + (Math.random() * r)))
+        return indices
+    }
+
     static DepthMap(indices){
         const map = {}
         for(var i = 0; i < indices.length; i++)
@@ -57,15 +65,15 @@ module.exports = class SDR {
         return SDR.Filter({indices:SDR.Sum(arrs),min:1,max:1})
     }
 
-    static Subsample(arr,{size=8}={}){
-        const subsampled = []
-        for(var i = 0; i < size; i++)
-            subsampled.push(arr[i * Math.floor(arr.length / size)])
-        return subsampled
+    static Flatten(indices){
+        return SDR.OR([indices])
     }
 
-    static Flatten(indices){
-        return Object.keys(SDR.DepthMap(indices)).map(index => parseInt(index))
+    static Subsample(indices,size=8){
+        const subsampled = []
+        for(var i = 0; i < size; i++)
+            subsampled.push(indices[i * Math.floor(indices.length / size)])
+        return subsampled
     }
 
     static BinaryToIndexArray(arr){
@@ -85,7 +93,7 @@ module.exports = class SDR {
 
     static Sort(arr,arrs){
         return arrs.concat([]).sort((a,b) => {
-            return SDR.Intersect([a,b]).length
+            return SDR.AND([a,b]).length
         })
     }
 
@@ -103,10 +111,7 @@ module.exports = class SDR {
     }
 
     random(population = 8){
-        this.indices = []
-        const r = this.range / population
-        for(var i = 0; i < population; i++)
-            this.indices.push(Math.floor((r * i) + (Math.random() * r)))
+        this.indices = SDR.Random(population,this.range)
     }
 
     flatten(){
