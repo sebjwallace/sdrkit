@@ -15,7 +15,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "dist": "browserify dist/main.js -o docs/bundle.js"
+    "dist": "browserify dist/main.js -o docs/js/bundle.js"
   },
   "author": "",
   "license": "ISC"

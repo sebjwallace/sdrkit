@@ -138,6 +138,14 @@ module.exports = class SDR {
         return SDR.AND([this.indices,indices])
     }
 
+    union(indices){ // alias
+        return this.or(indices)
+    }
+
+    overlap(indices){ // alias
+        return this.and(indices)
+    }
+
     subsample(size){
         return SDR.Subsample(this.indices,size)
     }
@@ -163,10 +171,7 @@ module.exports = class SDR {
     }
 
     population(){
-        const uniqueBits = {}
-        for(var i = 0; i < this.indices.length; i++)
-            uniqueBits[this.indices[i]] = true
-        return Object.keys(uniqueBits).length
+        return Object.keys(this.depthMap()).length
     }
 
     depthMap(){
