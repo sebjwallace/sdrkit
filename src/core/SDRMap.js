@@ -8,11 +8,16 @@ module.exports = class SDRMap {
     }
 
     set(key,val,weight=1){
+        const depthMap = {}
+        for(var i = 0; i < key.length; i++)
+            depthMap[key[i]] = (depthMap[key[i]] || 0) + 1
         for(var i = 0; i < key.length; i++){
-            if(!this.weights[key[i]])
-                this.weights[key[i]] = {}
-            for(var j = 0; j < val.length; j++)
-                this.weights[key[i]][val[j]] = (this.weights[key[i]][val[j]] || 0) + weight
+            const kv = key[i]
+            this.weights[kv] = this.weights[kv] || {}
+            for(var j = 0; j < val.length; j++){
+                const vv = val[j]
+                this.weights[kv][vv] = (this.weights[kv][vv] || 0) + (weight / depthMap[kv])
+            }
         }
     }
 
@@ -31,12 +36,9 @@ module.exports = class SDRMap {
                 for(var j = 0; j < n; j++)
                     val.push(parseInt(i))
             }
+            else return null
         }
-        return val.length > 0 ? val : null
+        return val
     }
 
 }
-
-map = new module.exports()
-map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
-map.get([9,12,56,285,723])
