@@ -12,7 +12,7 @@ module.exports = class SDRDictionary {
     }
 
     set(key,val){
-        const secondKey = new SDR({range:2048}).indices
+        const secondKey = new SDR({length:2048}).indices
         this.secondKeys.push(secondKey)
         this.map.set(key,secondKey)
         this.dict[secondKey.join()] = val

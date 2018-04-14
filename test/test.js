@@ -5,6 +5,112 @@ const SDRMap = require('../src/core/SDRMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
 const Graph = require('../src/core/Graph')
 
+describe('SDR Instance', () => {
+
+    it('should initialize with a random set of 8 indicies', () => {
+        const sdr = new SDR()
+        expect(sdr.indices.length).to.equal(8)
+        let last = -1
+        for(var i = 0; i < sdr.indices.length; i++){
+            expect(sdr.indices[i]).to.be.above(last)
+            last = sdr.indices[i]
+        }
+    })
+
+    it('should initialize with a random set of n indicies', () => {
+        const sdr = new SDR({population:16})
+        expect(sdr.indices.length).to.equal(16)
+        let last = -1
+        for(var i = 0; i < sdr.indices.length; i++){
+            expect(sdr.indices[i]).to.be.above(last)
+            last = sdr.indices[i]
+        }
+    })
+
+    it('should initialize with an injected set of indicies', () => {
+        const sdr = new SDR({indices:[10,20,30,40,50,60,70,80]})
+        expect(sdr.indices).to.deep.equal([10,20,30,40,50,60,70,80])
+    })
+
+    it('should calculate the population of active bits', () => {
+        const sdr = new SDR()
+        expect(sdr.population()).to.equal(8)
+    })
+
+    it('should calculate the population of overlapping active bits', () => {
+        const sdr = new SDR({indices:[10,10,20,20,30,30,40,40]})
+        expect(sdr.population()).to.equal(4)
+    })
+
+    it('should calculate the density of the SDR', () => {
+        let sdr = new SDR({range:16,population:8})
+        expect(sdr.density()).to.equal(0.5)
+        sdr = new SDR({range:32,population:8})
+        expect(sdr.density()).to.equal(8/32)
+        sdr = new SDR({range:1024,population:8})
+        expect(sdr.density()).to.equal(8/1024)
+    })
+
+    it('should calculate the depth of the overlapping bits', () => {
+        const sdr = new SDR({indices:[10,20,20,40,50,60,70,70,80,80,80,80]})
+        expect(sdr.depth()).to.equal(4)
+    })
+
+    it('should calculate the depth map of the overlapping bits', () => {
+        const sdr = new SDR({indices:[10,20,20,40,50,60,70,70,80,80,80,80]})
+        expect(sdr.depthMap()).to.deep.equal({
+            10: 1, 20: 2, 40: 1, 50: 1, 60: 1, 70: 2, 80: 4
+        })
+    })
+
+    it('should flatten overlapping indices', () => {
+        const sdr = new SDR({indices:[4,18,22,22,83,83,127,127,127,254,254,391,391,391,411,411,411,411]})
+        expect(sdr.flatten()).to.deep.equal([4,18,22,83,127,254,391,411])
+    })
+
+    it('should filter the depth of the indices', () => {
+        const sdr = new SDR({indices:[4,18,22,22,83,83,127,127,127,254,254,391,391,391,411,411,411,411]})
+        expect(sdr.filter({min:1,ceil:1})).to.deep.equal([4,18,22,83,127,254,391,411])
+        expect(sdr.filter({min:1,ceil:2})).to.deep.equal([4,18,22,22,83,83,127,127,254,254,391,391,411,411])
+        expect(sdr.filter({min:1,ceil:3})).to.deep.equal([4,18,22,22,83,83,127,127,127,254,254,391,391,391,411,411,411])
+        expect(sdr.filter({min:1,ceil:4})).to.deep.equal([4,18,22,22,83,83,127,127,127,254,254,391,391,391,411,411,411,411])
+        expect(sdr.filter({min:2,ceil:4})).to.deep.equal([22,22,83,83,127,127,127,254,254,391,391,391,411,411,411,411])
+        expect(sdr.filter({min:3,ceil:4})).to.deep.equal([127,127,127,391,391,391,411,411,411,411])
+        expect(sdr.filter({min:4,ceil:4})).to.deep.equal([411,411,411,411])
+        expect(sdr.filter({min:4,ceil:5})).to.deep.equal([411,411,411,411])
+        expect(sdr.filter({min:5,ceil:9})).to.deep.equal([])
+    })
+
+    it('should add indices from another set', () => {
+        const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
+        expect(sdr.add([8,22,37,44,54,61,79,99])).to.deep.equal([1,8,8,14,19,22,27,37,44,44,52,54,61,79,79,99])
+    })
+
+    it('should subtract indices from another set', () => {
+        let sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
+        expect(sdr.subtract([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,27,52])
+        sdr = new SDR({indices:[1,8,14,19,27,27,44,52,79,79,79]})
+        expect(sdr.subtract([8,22,27,37,44,54,61,79,99])).to.deep.equal([1,14,19,27,52,79,79])
+    })
+
+    it('should OR indices from another set', () => {
+        const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
+        expect(sdr.or([8,22,37,44,54,61,79,99])).to.deep.equal([1,8,14,19,22,27,37,44,52,54,61,79,99])
+    })
+
+    it('should AND indices from another set', () => {
+        const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
+        expect(sdr.and([8,22,37,44,54,61,79,99])).to.deep.equal([8,44,79])
+    })
+
+    it('should XOR indices from another set', () => {
+        const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
+        expect(sdr.xor([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
+    })
+
+})
+
+/*
 describe('SDR', () => {
 
     it('should create a union of many index arrays', () => {
@@ -145,3 +251,4 @@ describe('Graph', () => {
     })
 
 })
+*/

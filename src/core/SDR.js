@@ -1,20 +1,60 @@
 
 module.exports = class SDR {
 
-    static Union(arrs){
-        return SDR.Filter(arrs)
+    static DepthMap(indices){
+        const map = {}
+        for(var i = 0; i < indices.length; i++)
+            map[indices[i]] = (map[indices[i]] || 0) + 1
+        return map
     }
 
-    static Intersect(arrs){
-        return SDR.Filter(arrs,2)
+    static Depth(indices){
+        let largest = 0
+        const map = SDR.DepthMap(indices)
+        for(var i in map)
+            largest = map[i] > largest ? map[i] : largest
+        return largest
     }
 
-    static Difference(arrs){
-        return SDR.Filter(arrs,0,1)
+    static Filter({indices,min=1,max=Infinity,ceil=Infinity}){
+        const map = SDR.DepthMap(indices)
+        const filtered = []
+        for(var i in map)
+            if(map[i] >= min && map[i] <= max)
+                for(var j = 0; j < map[i]; j++)
+                    if(j < ceil)
+                        filtered.push(parseInt(i))
+        return filtered
     }
 
-    static Subtract(arrs){
-        return SDR.Filter(arrs,0,1)
+    static Sum(arrs){
+        const union = []
+        for(var i = 0; i < arrs.length; i++)
+            for(var j = 0; j < arrs[i].length; j++)
+                union.push(arrs[i][j])
+        return union.sort((a,b) => a - b)
+    }
+
+    static Subtract(indices1,indices2){
+        indices1 = indices1.concat([])
+        for(var i = 0; i < indices2.length; i++){
+            const index = indices1.indexOf(indices2[i])
+            if(index >= 0)
+                indices1.splice(index,1)
+        }
+        return indices1
+    }
+
+    static OR(arrs){
+        return SDR.Filter({indices:SDR.Sum(arrs),min:1,ceil:1})
+    }
+
+    static AND(arrs){
+        return SDR.Filter({indices:SDR.Sum(arrs),min:2,ceil:1})
+    }
+
+    static XOR(arrs){
+        return SDR.Filter({indices:SDR.Sum(arrs),min:1,max:1})
     }
 
     static Subsample(arr,{size=8}={}){
@@ -24,16 +64,8 @@ module.exports = class SDR {
         return subsampled
     }
 
-    static Filter(arrs,min=0,max=Infinity){
-        let counts = {}
-        for(var x = 0; x < arrs.length; x++)
-            for(var y = 0; y < arrs[x].length; y++)
-                counts[arrs[x][y]] = (counts[arrs[x][y]] || 0) + 1
-        const filtered = []
-        for(var i in counts)
-            if(counts[i] >= min && counts[i] <= max)
-                filtered.push(parseInt(i))
-        return filtered
+    static Flatten(indices){
+        return Object.keys(SDR.DepthMap(indices)).map(index => parseInt(index))
     }
 
     static BinaryToIndexArray(arr){
@@ -44,9 +76,9 @@ module.exports = class SDR {
         return indices
     }
 
-    static IndexArrayToBinary(arr,range){
+    static IndexArrayToBinary(arr,length){
         const binary = []
-        for(var i = 0; i < range; i++)
+        for(var i = 0; i < length; i++)
             binary[i] = arr.indexOf(i) != -1 ? 1 : 0
         return binary
     }
@@ -61,40 +93,52 @@ module.exports = class SDR {
         return SDR.Sort(arr,arrs)[0]
     }
 
-    constructor({range=2048,indices=[],binaryArray=null} = {}){
+    constructor({ range = 2048, population = 8, indices = [], binaryArray } = {}){
         this.indices = indices
         this.range = range
         if(binaryArray)
             this.fromBinaryArray(binaryArray)
         if(!this.indices.length)
-            this.random()
+            this.random(population)
     }
 
-    random(size = 8){
+    random(population = 8){
         this.indices = []
-        const r = this.range / size
-        for(var i = 0; i < size; i++)
+        const r = this.range / population
+        for(var i = 0; i < population; i++)
             this.indices.push(Math.floor((r * i) + (Math.random() * r)))
     }
 
-    union(arrs){
-        return SDR.Union(arrs.concat(this.indices))
+    flatten(){
+        return SDR.Flatten(this.indices)
     }
 
-    intersect(arrs){
-        return SDR.Intersect(arrs.concat(this.indices))
+    add(indices){
+        return SDR.Sum([this.indices,indices])
     }
 
-    difference(arrs){
-        return SDR.Difference(arrs.concat(this.indices))
+    subtract(indices){
+        return SDR.Subtract(this.indices,indices)
     }
 
-    subtract(arrs){
-        return SDR.Subtract(arrs.concat(this.indices))
+    or(indices){
+        return SDR.OR([this.indices,indices])
+    }
+
+    xor(indices){
+        return SDR.XOR([this.indices,indices])
+    }
+
+    and(indices){
+        return SDR.AND([this.indices,indices])
     }
 
     subsample(size){
         return SDR.Subsample(this.indices,size)
+    }
+
+    filter({min=1,max=Infinity,ceil=Infinity} = {}){
+        return SDR.Filter({indices:this.indices,min,max,ceil})
     }
 
     sort(arrs){
@@ -106,15 +150,26 @@ module.exports = class SDR {
     }
 
     density(){
-        return this.indices.length / this.range
+        return this.population() / this.range
     }
 
     sparsity(){
         return 1 - this.density()
     }
 
-    get(){
-        return this.indices.concat([])
+    population(){
+        const uniqueBits = {}
+        for(var i = 0; i < this.indices.length; i++)
+            uniqueBits[this.indices[i]] = true
+        return Object.keys(uniqueBits).length
+    }
+
+    depthMap(){
+        return SDR.DepthMap(this.indices)
+    }
+
+    depth(){
+        return SDR.Depth(this.indices)
     }
 
     fromIndexArray(arr){

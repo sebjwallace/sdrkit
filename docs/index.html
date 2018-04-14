@@ -17,6 +17,9 @@
                     + '</div>'
                 )
             }
+            function printSDR(sdr){
+                SDRKit.SDRViz.row({sdr})
+            }
         </script>
 
         <!-- NOTEBOOK -->
@@ -25,29 +28,12 @@
         <h4>Sparse Distributed Representations (SDRs)</h4>
 
         <p>
-            An SDR is a Sparse Distributed Representation. Within a range of bits there is only a small percentage active. For example, if there was a range of bits of the size 128, the active bits will be sparse.
+            An SDR (Sparse Distributed Representation) is a data structure - it is a way of representing data. It is an array of values where a large percentage of the values are 0. The remaining values are 1 or above. This property of sparsity allows for a high storage capacity of unqiue patterns, each of which semantically represent something.
         </p>
         <script nb="1">
-            var sdr = new SDRKit.SDR({range:128});;
-            print(1,'indicies: ',sdr.indices)
-            print(1,'density: ',sdr.density())
-        </script>
-        <script>
-            SDRKit.SDRViz.row({arr:sdr.toBinaryArray()})
-        </script>
-
-        <p>
-            Unions are the combinations of SDRs. Together they increase the density.
-        </p>
-
-        <script nb="2">
-            var sdrb = new SDRKit.SDR({range:128})
-            var union = SDRKit.SDR.IndexArrayToBinary(SDRKit.SDR.Union([sdr.indices,sdrb.indices]),128)
-        </script>
-        <script>
-            SDRKit.SDRViz.row({arr:sdr.toBinaryArray()})
-            SDRKit.SDRViz.row({arr:sdrb.toBinaryArray()})
-            SDRKit.SDRViz.row({arr:union})
+            var SDR = SDRKit.SDR;;
+            var sdr = new SDR({range:128,indices:[4, 27, 27, 38, 59, 77, 77, 77, 80, 101, 101, 101, 101, 12]});;
+            printSDR(sdr)
         </script>
 
         <!-- SETUP -->
@@ -65,11 +51,23 @@
             body{
                 font-family: Roboto;
             }
-            .notebook, .notebook-print, .canvas-wrap{
+            .notebook, .notebook-print, .canvas-wrap, .viz-container{
                 padding: 5px;
                 background: #f7f7f7;
                 border: 1px solid lightgray;
+                border-left: 5px solid lightgray;
                 font-size: 0.9em;
+            }
+            .viz-container{
+                background: #f1f1f1;
+                border-left: 5px solid #a5a5a5;
+                margin-top: 2px;
+            }
+            .viz-container span {
+                display: inline-block;
+                font-size: 0.75em;
+                margin-right: 10px;
+                margin-bottom: 5px;
             }
             .notebook-print{
                 background: #e7e7e7;

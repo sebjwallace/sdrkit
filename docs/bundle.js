@@ -87,7 +87,11 @@ module.exports = class Graph {
 module.exports = class SDR {
 
     static Union(arrs){
-        return SDR.Filter(arrs)
+        const union = []
+        for(var i = 0; i < arrs.length; i++)
+            for(var j = 0; j < arrs[i].length; j++)
+                union.push(arrs[i][j])
+        return union
     }
 
     static Intersect(arrs){
@@ -129,9 +133,9 @@ module.exports = class SDR {
         return indices
     }
 
-    static IndexArrayToBinary(arr,range){
+    static IndexArrayToBinary(arr,length){
         const binary = []
-        for(var i = 0; i < range; i++)
+        for(var i = 0; i < length; i++)
             binary[i] = arr.indexOf(i) != -1 ? 1 : 0
         return binary
     }
@@ -146,9 +150,9 @@ module.exports = class SDR {
         return SDR.Sort(arr,arrs)[0]
     }
 
-    constructor({range=2048,indices=[],binaryArray=null} = {}){
+    constructor({length=2048,indices=[],binaryArray=null} = {}){
         this.indices = indices
-        this.range = range
+        this.length = length
         if(binaryArray)
             this.fromBinaryArray(binaryArray)
         if(!this.indices.length)
@@ -157,7 +161,7 @@ module.exports = class SDR {
 
     random(size = 8){
         this.indices = []
-        const r = this.range / size
+        const r = this.length / size
         for(var i = 0; i < size; i++)
             this.indices.push(Math.floor((r * i) + (Math.random() * r)))
     }
@@ -191,11 +195,33 @@ module.exports = class SDR {
     }
 
     density(){
-        return this.indices.length / this.range
+        return this.indices.length / this.length
     }
 
     sparsity(){
         return 1 - this.density()
+    }
+
+    population(){
+        const uniqueBits = {}
+        for(var i = 0; i < this.indices.length; i++)
+            uniqueBits[this.indices[i]] = true
+        return Object.keys(uniqueBits).length
+    }
+
+    depthMap(){
+        const map = {}
+        for(var i = 0; i < this.indices.length; i++)
+            map[this.indices[i]] = (map[this.indices[i]] || 0) + 1
+        return map
+    }
+
+    depth(){
+        let largest = 0
+        const map = this.depthMap()
+        for(var i in map)
+            largest = map[i] > largest ? map[i] : largest
+        return largest
     }
 
     get(){
@@ -208,7 +234,7 @@ module.exports = class SDR {
 
     fromBinaryArray(arr){
         this.indices = SDR.BinaryToIndexArray(arr)
-        this.range = arr.length
+        this.length = arr.length
     }
 
     toIndexArray(){
@@ -216,7 +242,7 @@ module.exports = class SDR {
     }
 
     toBinaryArray(){
-        return SDR.IndexArrayToBinary(this.indices,this.range)
+        return SDR.IndexArrayToBinary(this.indices,this.length)
     }
 
 }
@@ -235,7 +261,7 @@ module.exports = class SDRDictionary {
     }
 
     set(key,val){
-        const secondKey = new SDR({range:2048}).indices
+        const secondKey = new SDR({length:2048}).indices
         this.secondKeys.push(secondKey)
         this.map.set(key,secondKey)
         this.dict[secondKey.join()] = val
@@ -297,19 +323,34 @@ module.exports = class SDRMap {
 }
 },{}],6:[function(require,module,exports){
 
+var SDR = require('../core/SDR')
+
 module.exports = {
 
-    row({container=document.body,width=900,height=10,arr} = {}){
+    row({container=document.body,width=900,height=5,arr,sdr} = {}){
+        var sdr = sdr || new SDR()
+        if(arr)
+            sdr.fromBinaryArray(arr)
+        const wrap = document.createElement('div')
+        wrap.className = 'viz-container'
+        wrap.innerHTML += '<span><b>Length:</b> ' + sdr.length + '</span>'
+        wrap.innerHTML += '<span><b>Population:</b> ' + sdr.population() + '</span>'
+        wrap.innerHTML += '<span><b>Density:</b> ' + sdr.density() + '</span>'
+        wrap.innerHTML += '<span><b>Indicies:</b> [' + sdr.indices.join(', ') + ']</span>'
+        container.appendChild(wrap)
         const canvas = document.createElement('canvas')
         canvas.width = width
         canvas.height = height
-        container.appendChild(canvas)
+        wrap.appendChild(canvas)
+        const depth = sdr.depth()
+        const depthMap = sdr.depthMap()
+        arr = sdr.toBinaryArray()
         const ctx = canvas.getContext('2d')
         for(var i = 0; i < arr.length; i++){
-            ctx.fillStyle = arr[i] ? 'black' : 'rgba(0,0,0,0.1)'
-            ctx.fillRect(i*4,0,4,4)
+            ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'white'
+            ctx.fillRect(i*4,0,4,height)
         }
     }
 
 }
-},{}]},{},[1]);
+},{"../core/SDR":3}]},{},[1]);
