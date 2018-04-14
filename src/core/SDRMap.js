@@ -7,17 +7,11 @@ module.exports = class SDRMap {
         this.threshold = threshold
     }
 
-    set(key,val,weight=1){
-        const depthMap = {}
-        for(var i = 0; i < key.length; i++)
-            depthMap[key[i]] = (depthMap[key[i]] || 0) + 1
+    set(key,val){
         for(var i = 0; i < key.length; i++){
-            const kv = key[i]
-            this.weights[kv] = this.weights[kv] || {}
-            for(var j = 0; j < val.length; j++){
-                const vv = val[j]
-                this.weights[kv][vv] = (this.weights[kv][vv] || 0) + (weight / depthMap[kv])
-            }
+            this.weights[key[i]] = (this.weights[key[i]] || {})
+            for(var j = 0; j < val.length; j++)
+                this.weights[key[i]][val[j]] = 1
         }
     }
 
@@ -30,15 +24,10 @@ module.exports = class SDRMap {
         }
         const val = []
         const threshold = this.size * this.threshold
-        for(var i in sum){
-            if(sum[i] > threshold){
-                var n = sum[i] / key.length
-                for(var j = 0; j < n; j++)
-                    val.push(parseInt(i))
-            }
-            else return null
-        }
-        return val
+        for(var i in sum)
+            if(sum[i] > threshold)
+                val.push(parseInt(i))
+        return val.length > 0 ? val : null
     }
 
 }

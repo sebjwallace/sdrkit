@@ -174,55 +174,6 @@ describe('SDRMap', () => {
         expect(map.get([2,3,4,7])).to.equal(null)
     })
 
-    it('should set and get value with reoccuring indices', () => {
-        let map = new SDRMap()
-        map.set([1,2,3,4,5,6,7,8],[11,12,12,13,14,15,16,17,18,18])
-        expect(map.get([1,2,3,4,5,6,7,8])).to.deep.equal([11,12,12,13,14,15,16,17,18,18])
-        map = new SDRMap()
-        map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
-        expect(map.get([9,12,56,150,285,431,559,723])).to.deep.equal([2,2,2,2,104,108,204,204,307])
-        map = new SDRMap()
-    })
-
-    it('should set and get value with reoccuring indices and key with missing bits', () => {
-        let map = new SDRMap()
-        map.set([1,2,3,4,5,6,7,8],[11,12,12,13,14,15,16,17,18,18])
-        expect(map.get([1,3,4,5,7,8])).to.deep.equal([11,12,12,13,14,15,16,17,18,18])
-        map = new SDRMap()
-        map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
-        expect(map.get([9,12,56,285,723])).to.deep.equal([2,2,2,2,104,108,204,204,307])
-        expect(map.get([9,12,56,285])).to.equal(null)
-        map = new SDRMap()
-        const sdr = new SDR()
-        map.set(sdr.indices,[59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
-        expect(map.get(sdr.indices)).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
-        expect(map.get(sdr.subsample(5))).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
-        expect(map.get(sdr.subsample(6))).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
-        expect(map.get(sdr.subsample(7))).to.deep.equal([59,128,490,490,571,612,749,749,749,749,862,988,988,1011,1011,1011,1011,1011])
-        expect(map.get(sdr.subsample(4))).to.equal(null)
-    })
-
-    it('should set and get value with reoccuring indices and key with too many bits', () => {
-        let map = new SDRMap()
-        map.set([1,2,3,4,5,6,7,8],[11,12,12,13,14,15,16,17,18,18])
-        expect(map.get([1,2,2,3,4,5,5,5,5,6,7,8])).to.deep.equal([11,12,12,13,14,15,16,17,18,18])
-        map = new SDRMap()
-        map.set([9,12,56,150,285,431,559,723],[2,2,2,2,104,108,204,204,307])
-        expect(map.get([12,56,150,150,150,150,150,150,285,559,723,723,723])).to.deep.equal([2,2,2,2,104,108,204,204,307])
-    })
-
-    it('should get a value with a key with reoccuring indices', () => {
-        let map = new SDRMap()
-        map.set([1,2,2,3,4,5,6,7,8,8],[11,12,13,14,15,16,17,18])
-        expect(map.get([1,2,2,3,4,5,6,7,8,8])).to.deep.equal([11,12,13,14,15,16,17,18])
-    })
-
-    it('should get a value with reoccuring indices with a key with reoccuring indices', () => {
-        let map = new SDRMap()
-        map.set([1,2,2,3,4,5,6,7,8,8],[11,12,13,14,14,15,16,17,18,18,18,18])
-        expect(map.get([1,2,2,3,4,5,6,7,8,8])).to.deep.equal([11,12,13,14,14,15,16,17,18,18,18,18])
-    })
-
 })
 
 describe('SDRDictionary', () => {

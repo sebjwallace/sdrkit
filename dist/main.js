@@ -5,5 +5,6 @@ window.SDRKit = {
     SDRDictionary: require('../src/core/SDRDictionary'),
     Graph: require('../src/core/Graph'),
 
-    SDRViz: require('../src/visual/SDRViz')
+    notebook: require('../src/visual/Notebook'),
+    visual: require('../src/visual/Visual')
 }
