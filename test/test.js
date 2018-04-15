@@ -5,7 +5,7 @@ const SDRMap = require('../src/core/SDRMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
 const Graph = require('../src/core/Graph')
 
-describe('SDR Instance', () => {
+describe('SDR', () => {
 
     it('should initialize with a random set of 8 indicies', () => {
         const sdr = new SDR()
@@ -120,6 +120,28 @@ describe('SDR Instance', () => {
     it('should return a subsample of the origional index array', () => {
         const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
         expect(sdr.subsample(4)).to.deep.equal([1,3,5,7])
+    })
+
+    it('should union and evenly sparsify an array of SDRs', () => {
+        let sparsified = SDR.Sparsify([
+            [0, 22, 42, 63, 68, 87, 97, 126],
+            [4, 26, 34, 50, 69, 88, 96, 117],
+        ],8)
+        expect(sparsified).to.deep.equal([0,26,42,50,68,88,97,117])
+        sparsified = SDR.Sparsify([
+            [12, 18, 44, 58, 68, 85, 99, 121],
+            [9, 22, 35, 56, 66, 89, 105, 127],
+            [7, 19, 32, 51, 74, 82, 100, 122]
+        ],8)
+        expect(sparsified).to.deep.equal([12,22,32,58,66,82,99,127])
+        sparsified = SDR.Sparsify([
+            [1, 20, 39, 61, 79, 94, 107, 112],
+            [4, 31, 37, 57, 65, 81, 102, 118],
+            [9, 29, 35, 63, 72, 84, 109, 119],
+            [8, 24, 32, 60, 70, 92, 104, 116],
+            [13, 16, 43, 58, 76, 91, 101, 117]
+        ],8)
+        expect(sparsified).to.deep.equal([1,31,35,60,76,94,102,119])
     })
 
     it('should return a sorted list of index array with the most similar at index 0', () => {

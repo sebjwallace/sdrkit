@@ -18,18 +18,14 @@
         <!-- NOTEBOOK -->
 
         <h2>SDRKit</h2>
-        <h4>Counting (Map)</h4>
-
-        <p>
-            A Map simply assigns one (or many) SDRs to another one (or many) SDRs (with the allowance for noise and degradation). In this case of counting, a single SDR that represents a number will be assigned to another SDR that represents the next number. 1 > 2, 2 > 3, 3 > 4, ... 10 > 1. The initial input of 1 will return an SDR of 2, feed that SDR back into the map and it will return 3, and so on.
-        </p>
-        <p>Scroll right to the bottom of the page to see the counting in action.</p>
+        <h4>Adding (Map)</h4>
 
         <script nb>
             var SDR = SDRKit.SDR
             var dict = new SDRKit.SDRDictionary()
+            dict.map.threshold = 0.9
             var map = new SDRKit.SDRMap()
-            map.threshold = 0.9
+            map.threshold = 0.7
             var range = 1024
             var population = 8
         </script>
@@ -47,28 +43,26 @@
             dict.set(SDR.Random(population,range),'10')
         </script>
 
-        <script nb>
-            map.set(dict.get('1'),dict.get('2'))
-            map.set(dict.get('2'),dict.get('3'))
-            map.set(dict.get('3'),dict.get('4'))
-            map.set(dict.get('4'),dict.get('5'))
-            map.set(dict.get('5'),dict.get('6'))
-            map.set(dict.get('6'),dict.get('7'))
-            map.set(dict.get('7'),dict.get('8'))
-            map.set(dict.get('8'),dict.get('9'))
-            map.set(dict.get('9'),dict.get('10'))
-            map.set(dict.get('10'),dict.get('1'))
+        <script nb="1">
+            dict.set(SDR.Sparsify([dict.get('1'),dict.get('2')],8),'1 + 2')
+            dict.set(SDR.Sparsify([dict.get('1'),dict.get('4')],8),'1 + 4')
+            dict.set(SDR.Sparsify([dict.get('5'),dict.get('2')],8),'5 + 2')
+            dict.set(SDR.Sparsify([dict.get('7'),dict.get('3')],8),'7 + 3')
+
+            map.set(dict.get('1 + 2'),dict.get('3'))
+            map.set(dict.get('1 + 4'),dict.get('5'))
+            map.set(dict.get('5 + 2'),dict.get('7'))
+            map.set(dict.get('7 + 3'),dict.get('10'))
+
+            print(1,dict.get(map.get(dict.get('1 + 2'))))
+            print(1,dict.get(map.get(dict.get('1 + 4'))))
+            print(1,dict.get(map.get(dict.get('5 + 2'))))
+            print(1,dict.get(map.get(dict.get('7 + 3'))))
         </script>
 
-        <script nb>
-            var state = dict.get('1')
-            setInterval(function(){
-                document.getElementById('counter').innerHTML = dict.get(state)
-                state = map.get(state)
-            },1000)
+        <script nb="2">
+            // print(1,dict.get(map.get(dict.get('1'))))
         </script>
-
-        <div id="counter" class="notebook viz-container" style="font-size:2em;"></div>
 
         <!-- SETUP -->
 

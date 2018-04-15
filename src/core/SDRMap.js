@@ -1,9 +1,9 @@
 
 module.exports = class SDRMap {
 
-    constructor(size=8,threshold=0.5){
+    constructor(population=8,threshold=0.5){
         this.weights = {}
-        this.size = size
+        this.population = population
         this.threshold = threshold
     }
 
@@ -23,7 +23,7 @@ module.exports = class SDRMap {
                 sum[j] = (sum[j] || 0) + weights[j]
         }
         const val = []
-        const threshold = this.size * this.threshold
+        const threshold = this.population * this.threshold
         for(var i in sum)
             if(sum[i] > threshold)
                 val.push(parseInt(i))

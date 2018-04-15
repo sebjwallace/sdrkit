@@ -69,11 +69,24 @@ module.exports = class SDR {
         return SDR.OR([indices])
     }
 
-    static Subsample(indices,size=8){
+    static Subsample(indices,population=8){
         const subsampled = []
-        for(var i = 0; i < size; i++)
-            subsampled.push(indices[i * Math.floor(indices.length / size)])
+        for(var i = 0; i < population; i++)
+            subsampled.push(indices[i * Math.floor(indices.length / population)])
         return subsampled
+    }
+
+    static Sparsify(arrs,population=8){
+        const sparsified = []
+        let offset = -1
+        let index = 0
+        for(var i = 0; i < population; i++){
+            const window = Math.floor(arrs[index].length / population)
+            offset = offset + 1 == window ? 0 : offset + 1
+            sparsified.push(arrs[index][(i * window) + offset])
+            index = index + 1 == arrs.length ? 0 : index + 1
+        }
+        return sparsified
     }
 
     static BinaryToIndexArray(arr){
