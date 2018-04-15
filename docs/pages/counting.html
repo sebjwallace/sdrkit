@@ -1,0 +1,79 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Counting (Map)</h4>
+
+        <p>
+            A Map simply assigns one (or many) SDRs to another one (or many) SDRs. In this case of counting, a single SDR that represents a number will be assigned to another SDR that represents the next number. 1 > 2, 2 > 3, 3 > 4, ... 10 > 1. The initial input of 1 will return an SDR of 2, feed that SDR back into the map and it will return 3, and so on.
+        </p>
+        <p>Scroll right to the bottom of the page to see the counting in action.</p>
+
+        <script nb>
+            var SDR = SDRKit.SDR
+            var dict = new SDRKit.SDRDictionary()
+            var map = new SDRKit.SDRMap()
+            map.threshold = 0.9
+            var range = 1024
+            var population = 8
+        </script>
+
+        <script nb>
+            dict.set(SDR.Random(population,range),'1')
+            dict.set(SDR.Random(population,range),'2')
+            dict.set(SDR.Random(population,range),'3')
+            dict.set(SDR.Random(population,range),'4')
+            dict.set(SDR.Random(population,range),'5')
+            dict.set(SDR.Random(population,range),'6')
+            dict.set(SDR.Random(population,range),'7')
+            dict.set(SDR.Random(population,range),'8')
+            dict.set(SDR.Random(population,range),'9')
+            dict.set(SDR.Random(population,range),'10')
+        </script>
+
+        <script nb>
+            map.set(dict.get('1'),dict.get('2'))
+            map.set(dict.get('2'),dict.get('3'))
+            map.set(dict.get('3'),dict.get('4'))
+            map.set(dict.get('4'),dict.get('5'))
+            map.set(dict.get('5'),dict.get('6'))
+            map.set(dict.get('6'),dict.get('7'))
+            map.set(dict.get('7'),dict.get('8'))
+            map.set(dict.get('8'),dict.get('9'))
+            map.set(dict.get('9'),dict.get('10'))
+            map.set(dict.get('10'),dict.get('1'))
+        </script>
+
+        <script nb>
+            var state = dict.get('1')
+            setInterval(function(){
+                document.getElementById('counter').innerHTML = dict.get(state)
+                state = map.get(state)
+            },1000)
+        </script>
+
+        <div id="counter" class="notebook viz-container" style="font-size:2em;"></div>
+
+        <!-- SETUP -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

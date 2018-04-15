@@ -133,6 +133,9 @@
             var AND = SDR.Filter({indices:sdr,min:2})
             printSDR({indices:AND,range:range,title:'AND'})
 
+            var XOR = SDR.Filter({indices:sdr,max:1})
+            printSDR({indices:XOR,range:range,title:'XOR'})
+
             var overlapClip2 = SDR.Filter({indices:sdr,min:2,ceil:2})
             printSDR({indices:overlapClip2,range:range,title:'Overlap and clip at 2'})
 
