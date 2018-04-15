@@ -306,8 +306,8 @@ const SDRMap = require('./SDRMap')
 
 module.exports = class SDRDictionary {
 
-    constructor(){
-        this.map = new SDRMap()
+    constructor(population=8){
+        this.map = new SDRMap(population)
         this.dict = {}
         this.mirrorDict = {}
         this.secondKeys = []
