@@ -174,6 +174,23 @@ describe('SDRMap', () => {
         expect(map.get([2,3,4,7])).to.equal(null)
     })
 
+    it('should handle many-to-one assignments', () => {
+        // this was adopted from an issue in a state machine example
+        var a = [5, 43, 74, 100, 143, 191, 218, 243]
+        var b = [2, 35, 64, 109, 139, 187, 195, 234]
+        var c = [17, 46, 86, 123, 156, 189, 212, 251]
+        var d = [19, 33, 95, 124, 149, 187, 205, 241]
+        const map = new SDRMap()
+        map.threshold = 0.7
+        map.set(SDR.Subsample(SDR.OR([a,d]),8),b)
+        map.set(SDR.Subsample(SDR.OR([a,c]),8),a)
+        map.set(SDR.Subsample(SDR.OR([b,c]),8),a)
+        map.set(SDR.Subsample(SDR.OR([b,d]),8),b)
+        // if the map had a threshold of 0.5 ths map would return a & b
+        var state = map.get(SDR.Subsample(SDR.OR([a,d]),8))
+        expect(state).to.deep.equal(b)
+    })
+
 })
 
 describe('SDRDictionary', () => {

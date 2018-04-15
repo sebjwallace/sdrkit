@@ -28,51 +28,49 @@
         <script nb="1">
             var SDR = SDRKit.SDR
             var dict = new SDRKit.SDRDictionary()
+            var population = 8
+            var range = 128
             // states
-            var lockedState = new SDR({range:128})
-            printSDR({sdr:lockedState,title:'lockedState'})
-            dict.set(lockedState.indices,'lockedState')
-            var unlockedState = new SDR({range:128})
-            printSDR({sdr:unlockedState,title:'unlockedState'})
-            dict.set(unlockedState.indices,'unlockedState')
+            var locked = SDR.Random(population,range)
+            printSDR({indices:locked,range:range,title:'locked'})
+            dict.set(locked,'locked')
+
+            var unlocked = SDR.Random(population,range)
+            printSDR({indices:unlocked,range:range,title:'unlocked'})
+            dict.set(unlocked,'unlocked')
         </script>
         <script nb="2">
             // transitions
-            var pushTrans = new SDR({range:128})
-            var coinTrans = new SDR({range:128})
-            printSDR({sdr:pushTrans,title:'pushTrans'})
-            printSDR({sdr:coinTrans,title:'coinTrans'})
+            var push = SDR.Random(population,range)
+            printSDR({indices:push,range:range,title:'push'})
+
+            var coin = SDR.Random(population,range)
+            printSDR({indices:coin,range:range,title:'coin'})
         </script>
         <script nb="3">
             // mapping
             var map = new SDRKit.SDRMap()
+            map.threshold = 0.9
 
-            map.set( // locked state and coin transition map to unlocked state
-                SDR.Subsample(lockedState.union(coinTrans.indices),8),
-                unlockedState.indices
-            )
+            var lockedAndCoin = SDR.Subsample(SDR.OR([locked,coin]),population)
+            map.set(lockedAndCoin,unlocked)
 
-            map.set( // locked state and push transition map to locked state
-                SDR.Subsample(lockedState.union(pushTrans.indices),8),
-                lockedState.indices
-            )
+            var lockedAndPush = SDR.Subsample(SDR.OR([locked,push]),population)
+            map.set(lockedAndPush,locked)
 
-            map.set( // unlocked state and push transition map to locked state
-                SDR.Subsample(unlockedState.union(pushTrans.indices),8),
-                lockedState.indices
-            )
+            var unlockedAndPush = SDR.Subsample(SDR.OR([unlocked,push]),population)
+            map.set(unlockedAndPush,locked)
 
-            map.set( // unlocked state and coin transition map to unlocked state
-                SDR.Subsample(unlockedState.union(coinTrans.indices),8),
-                unlockedState.indices
-            )
+            var unlockedAndCoin = SDR.Subsample(SDR.OR([unlocked,coin]),population)
+            map.set(unlockedAndCoin,unlocked)
         </script>
         <script nb="4">
             // running
-            var state = map.get(SDR.Subsample(lockedState.union(coinTrans.indices),8))
-            printSDR({indices: state,range: 128,title:dict.get(state)})
-            state = map.get(SDR.Subsample(pushTrans.union(state),8))
-            printSDR({indices: state,range: 128,title:dict.get(state)})
+            var state = map.get(lockedAndCoin)
+            printSDR({indices: state,range: range,title:dict.get(state)})
+            
+            state = map.get(SDR.Subsample(SDR.OR([state,push]),population))
+            printSDR({indices: state,range: range,title:dict.get(state)})
         </script>
 
         <!-- SETUP -->
