@@ -2,9 +2,16 @@
 module.exports = {
 
     print: function(id,a,b){
-        $('[nb="'+id+'"]').after(
-            '<div class="notebook-print">'
-                + a.toString() + '&nbsp;' + (b || '').toString()
+        var $fellow = $('.nb-ref-'+id)
+        $fellow = $fellow.length ? $fellow.last() : '[nb="'+id+'"]'
+        function format(obj){
+            if(typeof obj == 'object')
+                return JSON.stringify(obj)
+            return (obj || '').toString()
+        }
+        $($fellow).after(
+            '<div class="notebook-print nb-ref-'+id+'">'
+                + format(a) + '&nbsp;' + format(b)
             + '</div>'
         )
     },

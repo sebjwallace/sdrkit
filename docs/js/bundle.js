@@ -365,9 +365,16 @@ module.exports = class SDRMap {
 module.exports = {
 
     print: function(id,a,b){
-        $('[nb="'+id+'"]').after(
-            '<div class="notebook-print">'
-                + a.toString() + '&nbsp;' + (b || '').toString()
+        var $fellow = $('.nb-ref-'+id)
+        $fellow = $fellow.length ? $fellow.last() : '[nb="'+id+'"]'
+        function format(obj){
+            if(typeof obj == 'object')
+                return JSON.stringify(obj)
+            return (obj || '').toString()
+        }
+        $($fellow).after(
+            '<div class="notebook-print nb-ref-'+id+'">'
+                + format(a) + '&nbsp;' + format(b)
             + '</div>'
         )
     },
@@ -417,13 +424,14 @@ module.exports = {
         wrap.innerHTML += '<span><b>Indicies:</b> [' + sdr.indices.join(', ') + ']</span>'
         if(title)
             wrap.innerHTML += '<span><b>Title:</b> ' + title + '</span>'
+        wrap.innerHTML += '<br>'
         const canvas = createCanvas(wrap,width,height)
         const depth = sdr.depth()
         const depthMap = sdr.depthMap()
         arr = sdr.toBinaryArray()
         const ctx = canvas.getContext('2d')
         for(var i = 0; i < arr.length; i++){
-            ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'rgba(0,0,0,0.1)'
+            ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'white'
             ctx.fillRect(i*4,0,4,height)
         }
     }

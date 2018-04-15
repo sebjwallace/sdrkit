@@ -1,0 +1,162 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>SDR</h4>
+
+        <script nb>
+            var SDR = SDRKit.SDR
+        </script>
+
+        <script nb>
+            // create an SDR with a range of 128
+            var sdr = new SDR({range:128})
+            printSDR({sdr:sdr})            
+        </script>
+
+        <p>
+            An SDR object is just a wrapper around an index array. An index array holds the indices of the active (the 1s) bits of a binary array. SDRs can be processed as an SDR object or as plain index arrays using the SDR static methods. For clarity most examples will use index arrays.
+        </p>
+        <script nb="1">
+            var binaryArray = [0,1,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0]
+
+            print(1,'binary array: ',binaryArray)
+            var indexArray = SDR.BinaryToIndexArray(binaryArray)
+
+            print(1,'index array: ',indexArray)
+            var sdr = new SDR({binaryArray:binaryArray})
+
+            print(1,'sdr binary array: ',sdr.toBinaryArray())
+            print(1,'sdr index array: ',sdr.indices)
+        </script>
+
+        <h4>Union / OR</h4>
+
+        <p>SDRs can be combined in a number of different ways. The first operation is union (boolean OR)</p>
+        <script nb>
+            var range = 128
+            var population = 8
+            var sdr1 = SDR.Random(population,range)
+            var sdr2 = SDR.Random(population,range)
+            var union = SDR.OR([sdr1,sdr2])
+            printSDR({indices:sdr1,range:range,title:'sdr1'})
+            printSDR({indices:sdr2,range:range,title:'sdr2'})
+            printSDR({indices:union,range:range,title:'union'})
+        </script>
+
+        <h4>Overlap / AND</h4>
+
+        <p>Overlap (boolean AND) filters out the bits that don't match.</p>
+        <script nb>
+            var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
+            var sdr2 = [9, 21, 38, 48, 77, 81, 107, 116]
+            var overlap = SDR.AND([sdr1,sdr2])
+            printSDR({indices:sdr1,range:range,title:'sdr1'})
+            printSDR({indices:sdr2,range:range,title:'sdr2'})
+            printSDR({indices:overlap,range:range,title:'overlap'})
+        </script>
+
+        <h4>Difference / XOR</h4>
+
+        <p>Difference (boolean XOR) filters the bits that do match.</p>
+        <script nb>
+            var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
+            var sdr2 = [9, 21, 38, 48, 77, 81, 107, 116]
+            var difference = SDR.XOR([sdr1,sdr2])
+            printSDR({indices:sdr1,range:range,title:'sdr1'})
+            printSDR({indices:sdr2,range:range,title:'sdr2'})
+            printSDR({indices:difference,range:range,title:'difference'})
+        </script>
+
+        <h4>Subsample</h4>
+
+        <p>Reduce an SDR to a smaller population size while maintaining sparsity.</p>
+        <script nb>
+            var range = 128
+            var population = 8
+            var sdr = SDR.Random(16,128)
+            var subsample8 = SDR.Subsample(sdr,8)
+            var subsample4 = SDR.Subsample(sdr,4)
+            printSDR({indices:sdr,range:range,title:'sdr'})
+            printSDR({indices:subsample8,range:range,title:'subsample 1'})
+            printSDR({indices:subsample4,range:range,title:'subsample 2'})
+        </script>
+
+        <h4>Sum</h4>
+
+        <p>Sum together many SDRs and maintain the overlapping indices.</p>
+        <script nb="2">
+            var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
+            var sdr2 = [9, 21, 38, 48, 77, 81, 107, 116]
+            var sum = SDR.Sum([sdr1,sdr2])
+            print(2,'depth map: ',SDR.DepthMap(sum))
+            printSDR({indices:sdr1,range:range,title:'sdr1'})
+            printSDR({indices:sdr2,range:range,title:'sdr2'})
+            printSDR({indices:sum,range:range,title:'sum'})
+        </script>
+
+        <h4>Subtract</h4>
+
+        <p>Subtract the indices from an SDR using another SDR</p>
+        <script nb>
+            var sdr1 = [1, 21, 21, 21, 38, 52, 52, 52, 52, 65, 81, 81, 96, 126]
+            var sdr2 = [9, 21, 38, 48, 52, 77, 81, 107, 116]
+            var sub = SDR.Subtract(sdr1,sdr2)
+            print(2,'depth map: ',SDR.DepthMap(sub))
+            printSDR({indices:sdr1,range:range,title:'sdr1'})
+            printSDR({indices:sdr2,range:range,title:'sdr2'})
+            printSDR({indices:sub,range:range,title:'sub'})
+        </script>
+
+        <h4>Filter</h4>
+
+        <p>Filter SDRs based on their depth (reoccuring indices).</p>
+        <script nb>
+            var sdr = [1, 21, 21, 21, 38, 52, 52, 52, 52, 65, 81, 81, 96, 126]
+            printSDR({indices:sdr,range:range,title:'original sdr'})
+
+            var OR = SDR.Filter({indices:sdr,min:1})
+            printSDR({indices:OR,range:range,title:'OR'})
+
+            var unionClip1 = SDR.Filter({indices:sdr,min:1,ceil:1})
+            printSDR({indices:unionClip1,range:range,title:'union and clip at 1'})
+
+            var AND = SDR.Filter({indices:sdr,min:2})
+            printSDR({indices:AND,range:range,title:'AND'})
+
+            var overlapClip2 = SDR.Filter({indices:sdr,min:2,ceil:2})
+            printSDR({indices:overlapClip2,range:range,title:'Overlap and clip at 2'})
+
+            var overlapThreshold3 = SDR.Filter({indices:sdr,min:3})
+            printSDR({indices:overlapThreshold3,range:range,title:'Overlap threshold of 3'})
+
+            var overlapThreshold4 = SDR.Filter({indices:sdr,min:4})
+            printSDR({indices:overlapThreshold4,range:range,title:'Overlap threshold of 4'})
+            
+            var flatten = SDR.Filter({indices:sdr,ceil:1})
+            printSDR({indices:flatten,range:range,title:'flatten to single occurances'})
+        </script>
+
+        <!-- RENDER -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

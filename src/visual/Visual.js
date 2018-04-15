@@ -29,13 +29,14 @@ module.exports = {
         wrap.innerHTML += '<span><b>Indicies:</b> [' + sdr.indices.join(', ') + ']</span>'
         if(title)
             wrap.innerHTML += '<span><b>Title:</b> ' + title + '</span>'
+        wrap.innerHTML += '<br>'
         const canvas = createCanvas(wrap,width,height)
         const depth = sdr.depth()
         const depthMap = sdr.depthMap()
         arr = sdr.toBinaryArray()
         const ctx = canvas.getContext('2d')
         for(var i = 0; i < arr.length; i++){
-            ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'rgba(0,0,0,0.1)'
+            ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'white'
             ctx.fillRect(i*4,0,4,height)
         }
     }

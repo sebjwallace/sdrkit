@@ -89,6 +89,8 @@ describe('SDR Instance', () => {
     it('should add indices from another set', () => {
         const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
         expect(sdr.add([8,22,37,44,54,61,79,99])).to.deep.equal([1,8,8,14,19,22,27,37,44,44,52,54,61,79,79,99])
+        var sum = SDR.Sum([[1, 21, 38, 52, 65, 81, 96, 126],[9, 21, 21, 38, 48, 77, 81, 107, 116]])
+        expect(sum).to.deep.equal([1, 9, 21, 21, 21, 38, 38, 48, 52, 65, 77, 81, 81, 96, 107, 116, 126])
     })
 
     it('should subtract indices from another set', () => {
@@ -101,6 +103,8 @@ describe('SDR Instance', () => {
     it('should OR indices from another set', () => {
         const sdr = new SDR({indices:[1,8,14,19,27,44,52,79]})
         expect(sdr.or([8,22,37,44,54,61,79,99])).to.deep.equal([1,8,14,19,22,27,37,44,52,54,61,79,99])
+        const union = SDR.OR([[12, 23, 42, 52, 69, 84, 102, 116],[1, 16, 47, 60, 70, 87, 104, 121]])
+        expect(union).to.deep.equal( [1, 12, 16, 23, 42, 47, 52, 60, 69, 70, 84, 87, 102, 104, 116, 121])
     })
 
     it('should AND indices from another set', () => {
