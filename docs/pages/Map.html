@@ -1,0 +1,116 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Map</h4>
+
+        <script nb>
+            var SDR = SDRKit.SDR
+            var SDRMap = SDRKit.SDRMap
+            var map = new SDRMap()
+        </script>
+
+        <p>An SDRMap is a key-value mapping data structure. It maps SDRs using their indices.</p>
+        <script nb="1">
+            map.set([190, 429, 773, 924, 113, 417, 784, 941],[63, 107, 318, 487, 554, 614, 758, 860])
+            print(1,map.get([190, 429, 773, 924, 113, 417, 784, 941]))
+        </script>
+
+        <p>The indices from the key SDR are used to store and retreive the value SDR. Unlike a traditional key-value data structures, the key can be noisy and/or incomplete.</p>
+        <script nb="2">
+            print(2,map.get([190, 773, 113, 417, 941])) // missing 3 bits
+            print(2,map.get([190, 110, 773, 924, 100, 417, 784, 900])) // 3 incorrect bits
+            print(2,map.get([429, 924, 784, 941, 417, 113, 773, 190])) // bits in difference order
+            print(2,map.get([190, 429, 773, 847, 924, 528, 1197, 113, 417, 784, 941, 1200])) // 4 extra bits
+        </script>
+
+        <p>All the keys above retrieved the value successfully. However, the key invariance has a threshold. If the key does not meet that threshold then the value cannot be retreived.</p>
+        <script nb="3">
+            print(3,map.get([429, 924, 417, 784])) // 4 missing bits
+            print(3,map.get([29, 429, 41, 114, 580, 417, 784, 941])) // 4 incorrect bits
+        </script>
+
+        <p>The threshold for the above map is 0.5, the size of the key is 8, so therefore the number of correct key indices has to be above 4 (8 * 0.5 = 4). The threshold can be changed.</p>
+        <script nb="4">
+            map.threshold = 0.4 // number correct key indices must be above 3.2
+            print(4,map.get([429, 924, 417, 784]))
+            print(4,map.get([429, 924, 417]))
+            map.threshold = 0.1 // above 0.8
+            print(4,map.get([429]))
+            print(4,map.get([]))
+            map.threshold = 0.7 // above 5.6
+            print(4,map.get([190, 429, 773, 924, 113, 417]))
+            print(4,map.get([190, 429, 924, 113, 417]))
+        </script>
+
+        <p>The usefulness of this property is that a subsampled SDR key can be used to retreive the value.</p>
+        <script nb="5">
+            var subsample = SDRKit.SDR.Subsample([190, 429, 773, 924, 113, 417, 784, 941],5) // subsample down to a size of 5
+            print(5,subsample)
+            map.threshold = 0.5
+            print(5,map.get(subsample))
+        </script>
+
+        <p>The same is true if the key is a part of a union.</p>
+        <script nb="6">
+            var union = SDR.OR([[190, 429, 773, 924, 113, 417, 784, 941],SDR.Random(8,1024)])
+            print(6,union)
+            print(6,map.get(union))
+        </script>
+
+        <p>Or subsampled and within a union.</p>
+        <script nb="7">
+            var union = SDR.OR([SDR.Subsample([190, 429, 773, 924, 113, 417, 784, 941],5),SDR.Random(8,1024)])
+            print(7,union)
+            print(7,map.get(union))
+        </script>
+
+        <p>SDRMap can have more than just a one-to-one key-value mapping.</p>
+        <script nb="8">
+            var map = new SDRMap()
+            
+            print(8,'many-to-one relationship')
+            map.set([168, 477, 608, 803, 1047, 1400, 1543, 1997],[63, 107, 318, 487, 554, 614, 758, 860])
+            map.set([208, 383, 662, 870, 1038, 1321, 1646, 1834],[63, 107, 318, 487, 554, 614, 758, 860])
+            print(8,map.get([168, 477, 608, 803, 1047, 1400, 1543, 1997]))
+            print(8,map.get([208, 383, 662, 870, 1038, 1321, 1646, 1834]))
+
+            print(8,'one-to-many relationship')
+            var map = new SDRMap()
+            map.set([146, 327, 762, 821, 1268, 1353, 1790, 1832],[86, 422, 529, 1021, 1197, 1321, 1541, 1818])
+            map.set([146, 327, 762, 821, 1268, 1353, 1790, 1832],[32, 395, 599, 937, 1046, 1497, 1540, 1850])
+            print(8,map.get([146, 327, 762, 821, 1268, 1353, 1790, 1832])) // union of mapped values
+
+            print(8,'many-to-many relationship')
+            var map = new SDRMap()
+            map.set([50, 427, 546, 843, 1260, 1436, 1654, 1979],[233, 385, 711, 899, 1239, 1381, 1622, 1870])
+            map.set([50, 427, 546, 843, 1260, 1436, 1654, 1979],[1, 445, 591, 806, 1215, 1522, 1647, 1955])
+            map.set([235, 478, 705, 817, 1169, 1441, 1702, 1851],[233, 385, 711, 899, 1239, 1381, 1622, 1870])
+            map.set([235, 478, 705, 817, 1169, 1441, 1702, 1851],[1, 445, 591, 806, 1215, 1522, 1647, 1955])
+            print(8,map.get([50, 427, 546, 843, 1260, 1436, 1654, 1979]))
+            print(8,map.get([235, 478, 705, 817, 1169, 1441, 1702, 1851]))
+        </script>
+
+        <!-- SETUP -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

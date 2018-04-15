@@ -47,7 +47,6 @@
         </script>
 
         <h4>Union / OR</h4>
-
         <p>SDRs can be combined in a number of different ways. The first operation is union (boolean OR)</p>
         <script nb>
             var range = 128
@@ -61,7 +60,6 @@
         </script>
 
         <h4>Overlap / AND</h4>
-
         <p>Overlap (boolean AND) filters out the bits that don't match.</p>
         <script nb>
             var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
@@ -73,7 +71,6 @@
         </script>
 
         <h4>Difference / XOR</h4>
-
         <p>Difference (boolean XOR) filters the bits that do match.</p>
         <script nb>
             var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
@@ -85,7 +82,6 @@
         </script>
 
         <h4>Subsample</h4>
-
         <p>Reduce an SDR to a smaller population size while maintaining sparsity.</p>
         <script nb>
             var range = 128
@@ -99,7 +95,6 @@
         </script>
 
         <h4>Sum</h4>
-
         <p>Sum together many SDRs and maintain the overlapping indices.</p>
         <script nb="2">
             var sdr1 = [1, 21, 38, 52, 65, 81, 96, 126]
@@ -112,7 +107,6 @@
         </script>
 
         <h4>Subtract</h4>
-
         <p>Subtract the indices from an SDR using another SDR</p>
         <script nb>
             var sdr1 = [1, 21, 21, 21, 38, 52, 52, 52, 52, 65, 81, 81, 96, 126]
@@ -125,7 +119,6 @@
         </script>
 
         <h4>Filter</h4>
-
         <p>Filter SDRs based on their depth (reoccuring indices).</p>
         <script nb>
             var sdr = [1, 21, 21, 21, 38, 52, 52, 52, 52, 65, 81, 81, 96, 126]
@@ -148,9 +141,33 @@
 
             var overlapThreshold4 = SDR.Filter({indices:sdr,min:4})
             printSDR({indices:overlapThreshold4,range:range,title:'Overlap threshold of 4'})
-            
+
             var flatten = SDR.Filter({indices:sdr,ceil:1})
             printSDR({indices:flatten,range:range,title:'flatten to single occurances'})
+        </script>
+
+        <h4>Sort</h4>
+        <p>Sort an array of index arrays according to their similarity.</p>
+        <script nb="3">
+            var sdr = [9, 21, 38, 48, 52, 77, 81, 107, 116]
+            var sorted = SDR.Sort(sdr,[
+                [4, 21, 31, 50, 57, 72, 81, 112, 124],
+                [9, 21, 38, 48, 54, 77, 81, 107, 116],
+                [1, 27, 32, 48, 52, 77, 92, 100, 112]
+            ])
+            print(3,'sorted array: ',sorted)
+        </script>
+
+        <h4>Match</h4>
+        <p>Find the most similar SDR from an array of index arrays.</p>
+        <script nb="4">
+            var sdr = [9, 21, 38, 48, 52, 77, 81, 107, 116]
+            var match = SDR.Match(sdr,[
+                [4, 21, 31, 50, 57, 72, 81, 112, 124],
+                [9, 21, 38, 48, 54, 77, 81, 107, 116],
+                [1, 27, 32, 48, 52, 77, 92, 100, 112]
+            ])
+            print(4,'match: ',match)
         </script>
 
         <!-- RENDER -->

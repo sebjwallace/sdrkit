@@ -91,9 +91,9 @@ module.exports = class SDR {
         return binary
     }
 
-    static Sort(arr,arrs){
+    static Sort(indices,arrs){
         return arrs.concat([]).sort((a,b) => {
-            return SDR.AND([a,b]).length
+            return SDR.Subtract(indices,a).length - SDR.Subtract(indices,b).length
         })
     }
 

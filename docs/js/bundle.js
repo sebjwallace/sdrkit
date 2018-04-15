@@ -177,9 +177,9 @@ module.exports = class SDR {
         return binary
     }
 
-    static Sort(arr,arrs){
+    static Sort(indices,arrs){
         return arrs.concat([]).sort((a,b) => {
-            return SDR.AND([a,b]).length
+            return SDR.Subtract(indices,a).length - SDR.Subtract(indices,b).length
         })
     }
 
@@ -368,7 +368,9 @@ module.exports = {
         var $fellow = $('.nb-ref-'+id)
         $fellow = $fellow.length ? $fellow.last() : '[nb="'+id+'"]'
         function format(obj){
-            if(typeof obj == 'object')
+            if(Array.isArray(obj))
+                return '[' + obj.join(', ') + ']'
+            else if(typeof obj == 'object')
                 return JSON.stringify(obj)
             return (obj || '').toString()
         }

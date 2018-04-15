@@ -5,7 +5,9 @@ module.exports = {
         var $fellow = $('.nb-ref-'+id)
         $fellow = $fellow.length ? $fellow.last() : '[nb="'+id+'"]'
         function format(obj){
-            if(typeof obj == 'object')
+            if(Array.isArray(obj))
+                return '[' + obj.join(', ') + ']'
+            else if(typeof obj == 'object')
                 return JSON.stringify(obj)
             return (obj || '').toString()
         }
