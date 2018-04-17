@@ -1,0 +1,42 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Graph</h4>
+
+        <script nb>
+            var SDR = SDRKit.SDR
+            var dict = new SDRKit.SDRDictionary()
+            var range = 1024
+            var population = 8
+            </script>
+
+        <script nb="1">
+            var graph = new SDRKit.Graph()
+            var classifier1 = graph.create({type:'classifier'})
+            var classifier2 = graph.create({type:'classifier'})
+            var classifier3 = graph.create({type:'classifier',sources:[classifier1,classifier2]})
+        </script>
+        <!-- SETUP -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

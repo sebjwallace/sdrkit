@@ -35,6 +35,17 @@ module.exports = class SDR {
         return filtered
     }
 
+    static Trim(indices,population){
+        const trimmed = []
+        const depthMap = SDR.DepthMap(indices)
+        for(var i in depthMap)
+            trimmed.push({index:parseInt(i),depth:depthMap[i]})
+        return trimmed
+            .sort((a,b) => b.depth - a.depth)
+            .map(i => i.index)
+            .splice(0,population)
+    }
+
     static Sum(arrs){
         const union = []
         for(var i = 0; i < arrs.length; i++)

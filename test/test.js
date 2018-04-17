@@ -3,6 +3,7 @@ const expect = chai.expect
 const SDR = require('../src/core/SDR')
 const SDRMap = require('../src/core/SDRMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
+const SDRClassifier = require('../src/core/SDRClassifier')
 const Graph = require('../src/core/Graph')
 
 describe('SDR', () => {
@@ -144,6 +145,11 @@ describe('SDR', () => {
         expect(sparsified).to.deep.equal([1,31,35,60,76,94,102,119])
     })
 
+    it('should return indices of the highest reoccuring indices of a fixed population', () => {
+        const trimmed = SDR.Trim([2,12,16,16,43,43,43,58,76,91,91,91,91,101,101,117,117,200,200,278,340,340,421,500,500],8)
+        expect(trimmed).to.deep.equal([91,43,101,500,340,200,16,117])
+    })
+
     it('should return a sorted list of index array with the most similar at index 0', () => {
         const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
         expect(sdr.sort([[1,2],[1,2,3],[1,2,3,4],[1,2,3,4,5]]))
@@ -254,24 +260,80 @@ describe('SDRDictionary', () => {
 
 })
 
-// describe('Graph', () => {
+describe('SDRClassifier', () => {
 
-//     it('should compute', () => {
-//         const graph = Graph.Compute([
-//             {id:1,type:'sdr',state:[1,2,3,4,5,6,7,8]},
-//             {id:2,type:'sdr',state:[5,6,7,8,9,10,11,12]},
-//             {id:3,type:'intersect',sources:[1,2]}
-//         ])
-//         expect(graph[2].state).to.deep.equal([5,6,7,8])
-//     })
+    it('should assign an unassigned SDR input to a random SDR output', () => {
+        const classifier = new SDRClassifier()
+        const out = classifier.get([1,2,3,4,5,6,7,8])
+        expect(out.length).to.equal(8)
+    })
 
-//     it('can build a graph', () => {
-//         const graph = new Graph()
-//         const a = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
-//         const b = graph.create({type:'sdr',state:[5,6,7,8,9,10,11,12]})
-//         const c = graph.create({type:'intersect'})
-//         graph.connect(a,c).connect(b,c)
-//         expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
-//     })
+    it('should return the same output SDR to the same input SDR', () => {
+        const classifier = new SDRClassifier()
+        const out1 = classifier.get([1,2,3,4,5,6,7,8])
+        const out2 = classifier.get([1,2,3,4,5,6,7,8])
+        expect(out1).to.deep.equal(out2)
+    })
 
-// })
+    it('should return different output SDRs to different input SDRs', () => {
+        const classifier = new SDRClassifier()
+        const out1 = classifier.get([2, 35, 64, 109, 139, 187, 195, 234])
+        const out2 = classifier.get([2, 35, 64, 109, 139, 187, 195, 234])
+        const out3 = classifier.get([17, 46, 86, 123, 156, 189, 212, 251])
+        const out4 = classifier.get([17, 46, 86, 123, 156, 189, 212, 251])
+        expect(out1).to.not.deep.equal(out3)
+        expect(out1).to.deep.equal(out2)
+        expect(out3).to.deep.equal(out4)
+    })
+
+    it('should return the highest matching SDR between two input SDRs', () => {
+        const classifier = new SDRClassifier()
+        var a = classifier.get([1,2,3,4,5,6,7,8])
+        var b = classifier.get([11,12,13,14,15,16,17,18])
+        const match1 = classifier.get([1,2,3,4,5,16,17,18])
+        expect(match1).to.deep.equal(a)
+        const match2 = classifier.get([1,2,3,14,15,16,17,18])
+        expect(match2).to.deep.equal(b)
+    })
+
+})
+
+describe('Graph', () => {
+
+    it('should compute', () => {
+        const graph = Graph.Compute([
+            {id:1,type:'sdr',state:[1,2,3,4,5,6,7,8]},
+            {id:2,type:'sdr',state:[5,6,7,8,9,10,11,12]},
+            {id:3,type:'and',sources:[1,2]}
+        ])
+        expect(graph[2].state).to.deep.equal([5,6,7,8])
+    })
+
+    it('can build a graph', () => {
+        const graph = new Graph()
+        const a = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
+        const b = graph.create({type:'sdr',state:[5,6,7,8,9,10,11,12]})
+        const c = graph.create({type:'and'})
+        graph.connect(a,c).connect(b,c)
+        expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
+    })
+
+    it('can build a hierarchy of classifiers', () => {
+        const graph = new Graph()
+        var i1 = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
+        var i2 = graph.create({type:'sdr',state:[11,12,13,14,15,16,17,18]})
+        var a = graph.create({type:'classifier',sources:[i1]})
+        var b = graph.create({type:'classifier',sources:[i2]})
+        var c = graph.create({type:'sparsify',sources:[a,b],params:{population:8}})
+        var d = graph.create({type:'classifier',sources:[c]})
+        graph.compute()
+        console.log(a.state)
+        console.log(b.state)
+        console.log(d.state)
+        graph.compute()
+        console.log(a.state)
+        console.log(b.state)
+        console.log(d.state)
+    })
+
+})

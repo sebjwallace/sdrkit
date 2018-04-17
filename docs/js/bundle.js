@@ -4,12 +4,13 @@ window.SDRKit = {
     SDR: require('../src/core/SDR'),
     SDRMap: require('../src/core/SDRMap'),
     SDRDictionary: require('../src/core/SDRDictionary'),
+    SDRClassifier: require('../src/core/SDRClassifier'),
     Graph: require('../src/core/Graph'),
 
     notebook: require('../src/visual/Notebook'),
     visual: require('../src/visual/Visual')
 }
-},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRDictionary":4,"../src/core/SDRMap":5,"../src/visual/Notebook":6,"../src/visual/Visual":7}],2:[function(require,module,exports){
+},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/visual/Notebook":7,"../src/visual/Visual":8}],2:[function(require,module,exports){
 
 const SDR = require('./SDR')
 
@@ -303,6 +304,43 @@ module.exports = class SDR {
 
 const SDR = require('./SDR')
 const SDRMap = require('./SDRMap')
+const SDRDictionary = require('./SDRDictionary')
+
+module.exports = class SDRClassifier {
+
+    constructor(population=8,threshold=0.5){
+        this.map = new SDRMap(population,threshold)
+        this.dict = new SDRDictionary()
+        this.keys = []
+    }
+
+    get(key,match=true){
+
+        let val = this.map.get(key)
+        
+        // if there is more then one match
+        if(val.length > this.map.population && match){
+            const keys = this.dict.get(val).map(v => v.split(',').map(i => parseInt(i)))
+            val = this.map.get(SDR.Match(key,keys))
+        }
+
+        // if there is no match
+        else if(!val){
+            this.keys.push(key)
+            val = SDR.Random(8,2048)
+            this.map.set(key,val)
+            this.dict.set(val,key.join(','))
+        }
+
+        return val
+
+    }
+
+}
+},{"./SDR":3,"./SDRDictionary":5,"./SDRMap":6}],5:[function(require,module,exports){
+
+const SDR = require('./SDR')
+const SDRMap = require('./SDRMap')
 
 module.exports = class SDRDictionary {
 
@@ -339,7 +377,7 @@ module.exports = class SDRDictionary {
     }
 
 }
-},{"./SDR":3,"./SDRMap":5}],5:[function(require,module,exports){
+},{"./SDR":3,"./SDRMap":6}],6:[function(require,module,exports){
 
 module.exports = class SDRMap {
 
@@ -373,7 +411,7 @@ module.exports = class SDRMap {
     }
 
 }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 module.exports = {
 
@@ -407,7 +445,7 @@ module.exports = {
     }
 
 }
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 var SDR = require('../core/SDR')
 

@@ -1,5 +1,6 @@
 
 const SDR = require('./SDR')
+const SDRClassifier = require('./SDRClassifier')
 
 module.exports = class Graph {
 
@@ -9,12 +10,15 @@ module.exports = class Graph {
 
     create({type='sdr',sources=[],state=[]} = {}){
         const node = {
-            id: Math.random(),
+            id: Math.random().toString(36).substring(7),
             type,
-            sources,
+            sources: sources.map(s => typeof s == 'string' ? s : s.id),
             state,
+            _state: [],
             params: {}
         }
+        if(type == 'classifier')
+            node.instance = new SDRClassifier()
         this.graph.push(node)
         return node
     }
@@ -36,38 +40,44 @@ module.exports = class Graph {
 
     static Compute(graph){
 
-        const buffer = {}
-        for(var i = 0; i < graph.length; i++)
-            buffer[graph[i].id] = graph[i]
-
         const operations = {
             sdr(inputs){
-                return SDR.Union(inputs)
+                return SDR.OR(inputs)
             },
-            union(inputs){
-                return SDR.Union(inputs)
+            or(inputs){
+                return SDR.OR(inputs)
             },
-            intersect(inputs){
-                return SDR.Intersect(inputs)
+            and(inputs){
+                return SDR.AND(inputs)
             },
-            difference(inputs){
+            xor(inputs){
                 return SDR.Difference(inputs)
             },
-            subsample(inputs){
-                return SDR.Subsample(SDR.Union(inputs))
+            sparsify(inputs){
+                return SDR.Sparsify(inputs)
+            },
+            classifier(inputs,node){
+                return node.instance.get(SDR.Sparsify(inputs),node.params.population)
             }
         }
 
-        return graph.map(node => {
-            node = JSON.parse(JSON.stringify(node))
-            const inputs = []
-            if(node.sources && node.sources.length){
-                for(var i = 0; i < node.sources.length; i++)
-                    inputs.push(buffer[node.sources[i]].state)
-                node.state = operations[node.type](inputs,node.params)
-            }
-            return node
-        })
+        const nodes = {}
+
+        return graph
+            .map(node => {
+                node._state = node.state
+                nodes[node.id] = node
+                return node
+            })
+            .map(node => {
+                const inputs = []
+                if(node.sources && node.sources.length){
+                    for(var i = 0; i < node.sources.length; i++)
+                        inputs.push(nodes[node.sources[i]]._state)
+                    node.state = operations[node.type](inputs,node)
+                }
+                return node
+            })
     }
 
 }
