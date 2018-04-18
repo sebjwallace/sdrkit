@@ -4,8 +4,8 @@ const SDRMap = require('./SDRMap')
 
 module.exports = class SDRDictionary {
 
-    constructor(population=8){
-        this.map = new SDRMap(population)
+    constructor(population=8,threshold){
+        this.map = new SDRMap(population,threshold)
         this.dict = {}
         this.mirrorDict = {}
         this.secondKeys = []
@@ -24,7 +24,7 @@ module.exports = class SDRDictionary {
         if(typeof key == 'string')
             return this.mirrorDict[key]
         const secondKey = this.map.get(key)
-        if(secondKey && secondKey.length > 8){
+        if(secondKey && secondKey.length > this.map.population){
             const vals = []
             for(var i = 0; i < this.secondKeys.length; i++){
                 const overlap = SDR.AND([secondKey,this.secondKeys[i]])

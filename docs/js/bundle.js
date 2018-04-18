@@ -13,6 +13,7 @@ window.SDRKit = {
 },{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/visual/Notebook":7,"../src/visual/Visual":8}],2:[function(require,module,exports){
 
 const SDR = require('./SDR')
+const SDRClassifier = require('./SDRClassifier')
 
 module.exports = class Graph {
 
@@ -22,12 +23,15 @@ module.exports = class Graph {
 
     create({type='sdr',sources=[],state=[]} = {}){
         const node = {
-            id: Math.random(),
+            id: Math.random().toString(36).substring(7),
             type,
-            sources,
+            sources: sources.map(s => typeof s == 'string' ? s : s.id),
             state,
+            _state: [],
             params: {}
         }
+        if(type == 'classifier')
+            node.instance = new SDRClassifier()
         this.graph.push(node)
         return node
     }
@@ -49,42 +53,48 @@ module.exports = class Graph {
 
     static Compute(graph){
 
-        const buffer = {}
-        for(var i = 0; i < graph.length; i++)
-            buffer[graph[i].id] = graph[i]
-
         const operations = {
             sdr(inputs){
-                return SDR.Union(inputs)
+                return SDR.OR(inputs)
             },
-            union(inputs){
-                return SDR.Union(inputs)
+            or(inputs){
+                return SDR.OR(inputs)
             },
-            intersect(inputs){
-                return SDR.Intersect(inputs)
+            and(inputs){
+                return SDR.AND(inputs)
             },
-            difference(inputs){
+            xor(inputs){
                 return SDR.Difference(inputs)
             },
-            subsample(inputs){
-                return SDR.Subsample(SDR.Union(inputs))
+            sparsify(inputs){
+                return SDR.Sparsify(inputs)
+            },
+            classifier(inputs,node){
+                return node.instance.get(SDR.Sparsify(inputs),node.params.population)
             }
         }
 
-        return graph.map(node => {
-            node = JSON.parse(JSON.stringify(node))
-            const inputs = []
-            if(node.sources && node.sources.length){
-                for(var i = 0; i < node.sources.length; i++)
-                    inputs.push(buffer[node.sources[i]].state)
-                node.state = operations[node.type](inputs,node.params)
-            }
-            return node
-        })
+        const nodes = {}
+
+        return graph
+            .map(node => {
+                node._state = node.state
+                nodes[node.id] = node
+                return node
+            })
+            .map(node => {
+                const inputs = []
+                if(node.sources && node.sources.length){
+                    for(var i = 0; i < node.sources.length; i++)
+                        inputs.push(nodes[node.sources[i]]._state)
+                    node.state = operations[node.type](inputs,node)
+                }
+                return node
+            })
     }
 
 }
-},{"./SDR":3}],3:[function(require,module,exports){
+},{"./SDR":3,"./SDRClassifier":4}],3:[function(require,module,exports){
 
 module.exports = class SDR {
 
@@ -120,6 +130,17 @@ module.exports = class SDR {
                     if(j < ceil)
                         filtered.push(parseInt(i))
         return filtered
+    }
+
+    static Trim(indices,population){
+        const trimmed = []
+        const depthMap = SDR.DepthMap(indices)
+        for(var i in depthMap)
+            trimmed.push({index:parseInt(i),depth:depthMap[i]})
+        return trimmed
+            .sort((a,b) => b.depth - a.depth)
+            .map(i => i.index)
+            .splice(0,population)
     }
 
     static Sum(arrs){
@@ -319,7 +340,7 @@ module.exports = class SDRClassifier {
         let val = this.map.get(key)
         
         // if there is more then one match
-        if(val.length > this.map.population && match){
+        if(val && val.length > this.map.population && match){
             const keys = this.dict.get(val).map(v => v.split(',').map(i => parseInt(i)))
             val = this.map.get(SDR.Match(key,keys))
         }
@@ -344,8 +365,8 @@ const SDRMap = require('./SDRMap')
 
 module.exports = class SDRDictionary {
 
-    constructor(population=8){
-        this.map = new SDRMap(population)
+    constructor(population=8,threshold){
+        this.map = new SDRMap(population,threshold)
         this.dict = {}
         this.mirrorDict = {}
         this.secondKeys = []
@@ -364,7 +385,7 @@ module.exports = class SDRDictionary {
         if(typeof key == 'string')
             return this.mirrorDict[key]
         const secondKey = this.map.get(key)
-        if(secondKey && secondKey.length > 8){
+        if(secondKey && secondKey.length > this.map.population){
             const vals = []
             for(var i = 0; i < this.secondKeys.length; i++){
                 const overlap = SDR.AND([secondKey,this.secondKeys[i]])
@@ -408,6 +429,10 @@ module.exports = class SDRMap {
             if(sum[i] > threshold)
                 val.push(parseInt(i))
         return val.length > 0 ? val : null
+    }
+
+    clear(){
+        this.weights = {}
     }
 
 }

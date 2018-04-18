@@ -1,0 +1,107 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Reversal</h4>
+
+        <p>
+            Maps can be used together to assign an SDR from one map to an SDR of another. An SDR of a map can depend on an SDR of another map. This can create a variable relationship. In this example, the variable SDRs are 'a' &amp; 'b'. A sequence drives the variables in 'a' particular order (a > b > b > a). Another map can assign 'a' &amp; 'b' to anything else. In this case 'a' firstly maps to 'cat' and 'b' firstly maps to 'dog'. When (a > b) reverse (b > a) so does 'cat' &amp; 'dog' in the other map (dog > cat). 'a' &amp; 'b' can then be reassigned to other SDRs like 'left' &amp; 'right'.
+        </p>
+
+        <script nb>
+            var range = 1024
+            var population = 8
+            var SDR = SDRKit.SDR
+            var graph = new SDRKit.Graph()
+            var dict = new SDRKit.SDRDictionary(24,0.9)
+            var map = new SDRKit.SDRMap(24,0.95)
+            var variableMap = new SDRKit.SDRMap(8)
+        </script>
+
+        <script nb>
+            var reverse = dict.set(SDR.Random(population,range),'reverse')
+            var before = dict.set(SDR.Random(population,range),'before')
+            var after = dict.set(SDR.Random(population,range),'after')
+            var a = dict.set(SDR.Random(population,range),'a')
+            var b = dict.set(SDR.Random(population,range),'b')
+
+            dict.set(SDR.OR([reverse,before,a]),'reverse+before+a')
+            dict.set(SDR.OR([reverse,before,b]),'reverse+before+b')
+            dict.set(SDR.OR([reverse,after,a]),'reverse+after+a')
+            dict.set(SDR.OR([reverse,after,b]),'reverse+after+b')
+
+            map.set(dict.get('reverse+before+a'),dict.get('reverse+before+b'))
+            map.set(dict.get('reverse+before+b'),dict.get('reverse+after+b'))
+            map.set(dict.get('reverse+after+b'),dict.get('reverse+after+a'))
+
+            var cat = dict.set(SDR.Random(24,range),'cat')
+            var dog = dict.set(SDR.Random(24,range),'dog')
+            var n1 = dict.set(SDR.Random(24,range),'1')
+            var n2 = dict.set(SDR.Random(24,range),'2')
+            var left = dict.set(SDR.Random(24,range),'left')
+            var right = dict.set(SDR.Random(24,range),'right')
+            variableMap.set(a,cat)
+            variableMap.set(b,dog)
+        </script>
+
+        <script nb="1">
+            var state = dict.get('reverse+before+a')
+
+            print(1,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(1,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(1,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(1,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+        </script>
+
+        <script nb="2">
+
+            variableMap.clear()
+            variableMap.set(a,left)
+            variableMap.set(b,right)
+            state = dict.get('reverse+before+a')
+
+            print(2,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(2,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(2,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+            print(2,dict.get(state)+' = ',dict.get(variableMap.get(state)))
+            state = map.get(state)
+
+        </script>
+
+        <!-- SETUP -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

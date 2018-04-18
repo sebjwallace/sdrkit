@@ -1,0 +1,45 @@
+<html>
+    <body>
+        <script src="../js/bundle.js"></script>
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="../css/prism.css" rel="stylesheet">
+        <script src="../js/prism.js"></script>
+        <link href="../css/notebook.css" rel="stylesheet">
+
+        <script>
+            var print = SDRKit.notebook.print
+            var printSDR = SDRKit.visual.printSDR
+        </script>
+
+        <!-- NOTEBOOK -->
+
+        <h2>SDRKit</h2>
+        <h4>Hierarchy</h4>
+
+        <script nb>
+            var SDR = SDRKit.SDR
+            var graph = new SDRKit.Graph()
+            var range = 1024
+            var population = 8
+        </script>
+
+        <script nb>
+            var i1 = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
+            var i2 = graph.create({type:'sdr',state:[11,12,13,14,15,16,17,18]})
+            var a = graph.create({type:'classifier',sources:[i1]})
+            var b = graph.create({type:'classifier',sources:[i2]})
+            var c = graph.create({type:'sparsify',sources:[a,b],params:{population:8}})
+            var d = graph.create({type:'classifier',sources:[c]})
+        </script>
+
+        <!-- SETUP -->
+
+        <script>
+            SDRKit.notebook.render()
+        </script>
+    </body>
+</html>

@@ -30,4 +30,8 @@ module.exports = class SDRMap {
         return val.length > 0 ? val : null
     }
 
+    clear(){
+        this.weights = {}
+    }
+
 }
