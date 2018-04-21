@@ -1,0 +1,61 @@
+<html>
+    <body>
+        <img src="docs/images/c1.png" id="img"/>
+        <canvas width="800" height="800" id="c"></canvas>
+
+        <script>
+
+            // cd C:\Program Files (x86)\Google\Chrome\Application
+            // chrome.exe --disable-web-security --allow-file-access-from-files
+
+            setTimeout(function(){
+
+                const loadImage = (id) => {
+                    const canvas = document.createElement('canvas')
+                    const ctx = canvas.getContext('2d')
+                    const img = document.getElementById(id)
+                    canvas.width = img.width
+                    canvas.height = img.height
+                    ctx.drawImage(img,0,0)
+                    const data = ctx.getImageData(0,0,img.width,img.height).data
+                    var i = 0
+                    const grid = []
+                    for(var y = 0; y < img.height; y++){
+                        grid[y] = []
+                        for(var x = 0; x < img.width; x++){
+                            const pixel = data[i]
+                            i+=4
+                            grid[y][x] = data[i]
+                        }
+                    }
+                    return grid
+                }
+
+                var imageData = loadImage("img",32)
+
+                var ctx = document.getElementById('c').getContext('2d')
+
+                var size = 32
+                var windowSize = 3
+                var stepSize = 1
+                var steps = size - (windowSize - 1)
+
+                for(var yi = 0; yi < steps; yi += stepSize){ 
+                    for(var xi = 0; xi < steps; xi += stepSize){
+                        for(var y = 0; y < windowSize; y++){
+                            for(var x = 0; x < windowSize; x++){
+                                
+                                var margin = 4
+                                ctx.fillStyle = imageData[yi+y][xi+x] == 0 ? 'black' : 'lightgray'
+                                ctx.fillRect((xi * ((windowSize-stepSize) + margin))+x,(yi * ((windowSize-stepSize) + margin))+y,1,1)
+                                
+                            }
+                        }
+                    }
+                }
+
+            },100)
+
+        </script>
+    </body>
+</html>

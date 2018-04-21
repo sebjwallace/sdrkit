@@ -1,16 +1,24 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 
 window.SDRKit = {
+
+    // core
     SDR: require('../src/core/SDR'),
     SDRMap: require('../src/core/SDRMap'),
     SDRDictionary: require('../src/core/SDRDictionary'),
     SDRClassifier: require('../src/core/SDRClassifier'),
     Graph: require('../src/core/Graph'),
 
+    // util
+    Partition: require('../src/util/Partition'),
+    Load: require('../src/util/Load'),
+
+    // visual
     notebook: require('../src/visual/Notebook'),
     visual: require('../src/visual/Visual')
+    
 }
-},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/visual/Notebook":7,"../src/visual/Visual":8}],2:[function(require,module,exports){
+},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/util/Load":7,"../src/util/Partition":8,"../src/visual/Notebook":9,"../src/visual/Visual":10}],2:[function(require,module,exports){
 
 const SDR = require('./SDR')
 const SDRClassifier = require('./SDRClassifier')
@@ -30,6 +38,8 @@ module.exports = class Graph {
             _state: [],
             params: {}
         }
+        if(type == 'node')
+            node.instance = node.constructor()
         if(type == 'classifier')
             node.instance = new SDRClassifier()
         this.graph.push(node)
@@ -54,6 +64,9 @@ module.exports = class Graph {
     static Compute(graph){
 
         const operations = {
+            node(){
+                return node.compute(inputs,node)
+            },
             sdr(inputs){
                 return SDR.OR(inputs)
             },
@@ -440,6 +453,60 @@ module.exports = class SDRMap {
 
 module.exports = {
 
+    imageDataGrayscale: (img) => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        canvas.width = img.width
+        canvas.height = img.height
+        ctx.drawImage(img,0,0)
+        const data = ctx.getImageData(0,0,img.width,img.height).data
+        var i = 0
+        const grid = []
+        for(var y = 0; y < img.height; y++){
+            grid[y] = []
+            for(var x = 0; x < img.width; x++){
+                const pixel = data[i]
+                i+=4
+                grid[y][x] = data[i]
+            }
+        }
+        return grid
+    }
+
+}
+},{}],8:[function(require,module,exports){
+
+module.exports = {
+
+    matrix: function({matrix,windowSize,stepSize,callback}){
+
+        var steps = matrix.length - (windowSize - 1)
+        var partitions = []
+
+        for(var yi = 0; yi < steps; yi += stepSize){
+            for(var xi = 0; xi < steps; xi += stepSize){
+                var partition = []
+                partitions.push(partition)
+                for(var y = 0; y < windowSize; y++){
+                    for(var x = 0; x < windowSize; x++){
+                        var pixel = matrix[yi+y][xi+x]
+                        partition.push(pixel)
+                        if(callback)
+                            callback(pixel,xi,yi,x,y)
+                    }
+                }
+            }
+        }
+
+        return partitions
+
+    }
+
+}
+},{}],9:[function(require,module,exports){
+
+module.exports = {
+
     print: function(id,a,b){
         var $fellow = $('.nb-ref-'+id)
         $fellow = $fellow.length ? $fellow.last() : '[nb="'+id+'"]'
@@ -470,9 +537,11 @@ module.exports = {
     }
 
 }
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 
 var SDR = require('../core/SDR')
+var Load = require('../util/Load')
+var Partition = require('../util/Partition')
 
 function createWrapper(container){
     const wrap = document.createElement('div')
@@ -512,7 +581,18 @@ module.exports = {
             ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'white'
             ctx.fillRect(i*4,0,4,height)
         }
+    },
+
+    printImagePartition({container=document.body,width,height,image,windowSize,stepSize}){
+        var wrapper = createWrapper(container)
+        const imageData = Load.imageDataGrayscale(image)
+        const ctx = createCanvas(wrapper,width,height).getContext('2d')
+        const partitions = Partition.matrix({matrix:imageData,windowSize,stepSize,callback: (pixel,xi,yi,x,y) => {
+            var margin = 4
+            ctx.fillStyle = pixel == 0 ? 'black' : 'white'
+            ctx.fillRect((xi * ((windowSize-stepSize) + margin))+x,(yi * ((windowSize-stepSize) + margin))+y,1,1)
+        }})
     }
 
 }
-},{"../core/SDR":3}]},{},[1]);
+},{"../core/SDR":3,"../util/Load":7,"../util/Partition":8}]},{},[1]);

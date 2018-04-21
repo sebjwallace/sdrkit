@@ -17,6 +17,8 @@ module.exports = class Graph {
             _state: [],
             params: {}
         }
+        if(type == 'node')
+            node.instance = node.constructor()
         if(type == 'classifier')
             node.instance = new SDRClassifier()
         this.graph.push(node)
@@ -41,6 +43,9 @@ module.exports = class Graph {
     static Compute(graph){
 
         const operations = {
+            node(){
+                return node.compute(inputs,node)
+            },
             sdr(inputs){
                 return SDR.OR(inputs)
             },

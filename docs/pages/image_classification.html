@@ -13,27 +13,25 @@
         <script>
             var print = SDRKit.notebook.print
             var printSDR = SDRKit.visual.printSDR
+            var printImagePartition = SDRKit.visual.printImagePartition
         </script>
 
         <!-- NOTEBOOK -->
 
         <h2>SDRKit</h2>
-        <h4>Hierarchy</h4>
+        <h4>Image Classification</h4>
+
+        <img src="../images/c1.png" id="img"/>
 
         <script nb>
-            var SDR = SDRKit.SDR
-            var graph = new SDRKit.Graph()
-            var range = 1024
-            var population = 8
+            var img = document.getElementById('img')
+            printImagePartition({image:img,height:180,width:200,windowSize:3,stepSize:1})
         </script>
 
         <script nb>
-            var i1 = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
-            var i2 = graph.create({type:'sdr',state:[11,12,13,14,15,16,17,18]})
-            var a = graph.create({type:'classifier',sources:[i1]})
-            var b = graph.create({type:'classifier',sources:[i2]})
-            var c = graph.create({type:'sparsify',sources:[a,b],params:{population:8}})
-            var d = graph.create({type:'classifier',sources:[c]})
+            var Partition = SDRKit.Partition
+            var Load = SDRKit.Load
+            var partitions = Partition.matrix({matrix:Load.imageDataGrayscale(img),windowSize:3,stepSize:1})
         </script>
 
         <!-- SETUP -->

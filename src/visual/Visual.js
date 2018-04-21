@@ -1,5 +1,7 @@
 
 var SDR = require('../core/SDR')
+var Load = require('../util/Load')
+var Partition = require('../util/Partition')
 
 function createWrapper(container){
     const wrap = document.createElement('div')
@@ -39,6 +41,17 @@ module.exports = {
             ctx.fillStyle = arr[i] ? 'rgba(0,0,0,'+(depthMap[i]/depth)+')' : 'white'
             ctx.fillRect(i*4,0,4,height)
         }
+    },
+
+    printImagePartition({container=document.body,width,height,image,windowSize,stepSize}){
+        var wrapper = createWrapper(container)
+        const imageData = Load.imageDataGrayscale(image)
+        const ctx = createCanvas(wrapper,width,height).getContext('2d')
+        const partitions = Partition.matrix({matrix:imageData,windowSize,stepSize,callback: (pixel,xi,yi,x,y) => {
+            var margin = 4
+            ctx.fillStyle = pixel == 0 ? 'black' : 'white'
+            ctx.fillRect((xi * ((windowSize-stepSize) + margin))+x,(yi * ((windowSize-stepSize) + margin))+y,1,1)
+        }})
     }
 
 }
