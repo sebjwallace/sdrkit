@@ -43,15 +43,27 @@ module.exports = {
         }
     },
 
-    printImagePartition({container=document.body,width,height,image,windowSize,stepSize}){
+    printImagePartition({container=document.body,width,height,image,windowSize,stepSize,margin=4,scale=1,callback}){
         var wrapper = createWrapper(container)
         const imageData = Load.imageDataGrayscale(image)
         const ctx = createCanvas(wrapper,width,height).getContext('2d')
         const partitions = Partition.matrix({matrix:imageData,windowSize,stepSize,callback: (pixel,xi,yi,x,y) => {
-            var margin = 4
             ctx.fillStyle = pixel == 0 ? 'black' : 'white'
-            ctx.fillRect((xi * ((windowSize-stepSize) + margin))+x,(yi * ((windowSize-stepSize) + margin))+y,1,1)
+            var px = ((xi * ((windowSize-stepSize) + margin))+x) * scale
+            var py = ((yi * ((windowSize-stepSize) + margin))+y) * scale
+            ctx.fillRect(px,py,scale,scale)
         }})
+    },
+
+    printPartitions({container=document.body,width,height,partitions,callback}){
+        var wrapper = createWrapper(container)
+        const ctx = createCanvas(wrapper,width,height).getContext('2d')
+        for(var y = 0; y < partitions.length; y++){
+            for(var x = 0; x < partitions[y].length; x++){
+                if(callback)
+                    callback(partitions[y][x],x,y,ctx)
+            }
+        }
     }
 
 }

@@ -7,13 +7,14 @@ module.exports = {
         var partitions = []
 
         for(var yi = 0; yi < steps; yi += stepSize){
+            partitions[yi] = []
             for(var xi = 0; xi < steps; xi += stepSize){
-                var partition = []
-                partitions.push(partition)
+                partitions[yi][xi] = []
                 for(var y = 0; y < windowSize; y++){
+                    partitions[yi][xi][y] = []
                     for(var x = 0; x < windowSize; x++){
                         var pixel = matrix[yi+y][xi+x]
-                        partition.push(pixel)
+                        partitions[yi][xi][y][x] = pixel
                         if(callback)
                             callback(pixel,xi,yi,x,y)
                     }
