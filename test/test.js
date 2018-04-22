@@ -162,6 +162,14 @@ describe('SDR', () => {
             .to.deep.equal([1,2,3,4,5])
     })
 
+    it('should concat an array of index arrays', () => {
+        expect(SDR.Concat([
+            [12, 18, 44, 58, 68, 85, 99, 121],
+            [8, 24, 32, 60, 70, 92, 104, 116],
+            [13, 16, 43, 58, 76, 91, 101, 117]
+        ],128)).to.deep.equal([12,18,44,58,68,85,99,121,136,152,160,188,198,220,232,244,269,272,299,314,332,347,357,373])
+    })
+
 })
 
 describe('SDRMap', () => {
@@ -316,24 +324,6 @@ describe('Graph', () => {
         const c = graph.create({type:'and'})
         graph.connect(a,c).connect(b,c)
         expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
-    })
-
-    it('can build a hierarchy of classifiers', () => {
-        const graph = new Graph()
-        var i1 = graph.create({type:'sdr',state:[1,2,3,4,5,6,7,8]})
-        var i2 = graph.create({type:'sdr',state:[11,12,13,14,15,16,17,18]})
-        var a = graph.create({type:'classifier',sources:[i1]})
-        var b = graph.create({type:'classifier',sources:[i2]})
-        var c = graph.create({type:'sparsify',sources:[a,b],params:{population:8}})
-        var d = graph.create({type:'classifier',sources:[c]})
-        graph.compute()
-        console.log(a.state)
-        console.log(b.state)
-        console.log(d.state)
-        graph.compute()
-        console.log(a.state)
-        console.log(b.state)
-        console.log(d.state)
     })
 
 })

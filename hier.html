@@ -36,16 +36,16 @@
                 var ctx = document.getElementById('c').getContext('2d')
 
                 var size = 32
-                var windowSize = 3
+                var windowSize = 2
                 var stepSize = 1
                 var steps = size - (windowSize - 1)
 
-                for(var yi = 0; yi < steps; yi += stepSize){ 
-                    for(var xi = 0; xi < steps; xi += stepSize){
+                for(var yi = 0; yi < steps; yi += windowSize){
+                    for(var xi = 0; xi < steps; xi += windowSize){
                         for(var y = 0; y < windowSize; y++){
                             for(var x = 0; x < windowSize; x++){
                                 
-                                var margin = 4
+                                var margin = 1
                                 ctx.fillStyle = imageData[yi+y][xi+x] == 0 ? 'black' : 'lightgray'
                                 ctx.fillRect((xi * ((windowSize-stepSize) + margin))+x,(yi * ((windowSize-stepSize) + margin))+y,1,1)
                                 

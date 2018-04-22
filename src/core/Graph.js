@@ -1,6 +1,15 @@
 
-const SDR = require('./SDR')
-const SDRClassifier = require('./SDRClassifier')
+const NODES = {
+    sdr: require('./nodes/sdr'),
+    or: require('./nodes/or'),
+    and: require('./nodes/and'),
+    xor: require('./nodes/xor'),
+    sparsify: require('./nodes/xor'),
+    classifier: require('./nodes/classifier'),
+    image: require('./nodes/image'),
+    imageEncoder: require('./nodes/imageEncoder'),
+    partition: require('./nodes/partition')
+}
 
 module.exports = class Graph {
 
@@ -8,19 +17,17 @@ module.exports = class Graph {
         this.graph = []
     }
 
-    create({type='sdr',sources=[],state=[]} = {}){
+    create({type='sdr',sources=[],state=[],params={}} = {}){
         const node = {
             id: Math.random().toString(36).substring(7),
             type,
             sources: sources.map(s => typeof s == 'string' ? s : s.id),
             state,
             _state: [],
-            params: {}
+            params
         }
-        if(type == 'node')
-            node.instance = node.constructor()
-        if(type == 'classifier')
-            node.instance = new SDRClassifier()
+        if(NODES[node.type].create)
+            NODES[node.type].create(node)
         this.graph.push(node)
         return node
     }
@@ -42,30 +49,6 @@ module.exports = class Graph {
 
     static Compute(graph){
 
-        const operations = {
-            node(){
-                return node.compute(inputs,node)
-            },
-            sdr(inputs){
-                return SDR.OR(inputs)
-            },
-            or(inputs){
-                return SDR.OR(inputs)
-            },
-            and(inputs){
-                return SDR.AND(inputs)
-            },
-            xor(inputs){
-                return SDR.Difference(inputs)
-            },
-            sparsify(inputs){
-                return SDR.Sparsify(inputs)
-            },
-            classifier(inputs,node){
-                return node.instance.get(SDR.Sparsify(inputs),node.params.population)
-            }
-        }
-
         const nodes = {}
 
         return graph
@@ -79,7 +62,7 @@ module.exports = class Graph {
                 if(node.sources && node.sources.length){
                     for(var i = 0; i < node.sources.length; i++)
                         inputs.push(nodes[node.sources[i]]._state)
-                    node.state = operations[node.type](inputs,node)
+                    node.state = NODES[node.type].compute(inputs,node)
                 }
                 return node
             })

@@ -23,6 +23,8 @@
                 SDRKit.visual.printPartitions({partitions:args.partitions,width:args.width,height:args.height,callback:function(partition,x,y,ctx){
                     var binaryArray = partition.map(function(i){return i.map(function(i){return i == 0 ? 1 : 0}).join(',')}).join(',')
                     ctx.fillStyle = 'white'
+                    ctx.fillStyle = pixelMap[binaryArray] == E ? 'rgb(195,195,210)' : ctx.fillStyle
+                    ctx.fillStyle = pixelMap[binaryArray] == F ? 'rgb(255,255,255)' : ctx.fillStyle
                     ctx.fillStyle = pixelMap[binaryArray] == H ? 'rgb(127,16,191)' : ctx.fillStyle
                     ctx.fillStyle = pixelMap[binaryArray] == V ? 'rgb(17,127,192)' : ctx.fillStyle
                     ctx.fillStyle = pixelMap[binaryArray] == DU ? 'rgb(238,127,190)' : ctx.fillStyle
@@ -49,7 +51,7 @@
 
         <script nb>
             var img = document.getElementById('img')
-            printImagePartition({image:img,height:200,width:200,windowSize:2,stepSize:1,margin:2,scale:2})
+            printImagePartition({image:img,height:370,width:400,windowSize:2,stepSize:1,margin:2,scale:4})
         </script>
 
         <p>
@@ -63,8 +65,12 @@
             var V = SDR.Random(8,2048) // vertical
             var DU = SDR.Random(8,2048) // diagonal up
             var DD = SDR.Random(8,2048) // diagonal down
+            var E = SDR.Random(8,2048) // empty
+            var F = SDR.Random(8,2048) // full
 
             var pixelMap = {
+                '0,0,0,0': E,
+                '1,1,1,1': F,
                 '1,0,0,0': DU,
                 '0,1,0,0': DD,
                 '0,0,1,0': DD,
@@ -89,6 +95,21 @@
             var Load = SDRKit.Load
             var partitions = Partition.matrix({matrix:Load.imageDataGrayscale(img),windowSize:2,stepSize:1})
             printPartitions({partitions:partitions,width:200,height:170,scale:5})
+        </script>
+
+        <script nb>
+            var imagePartitions = SDRKit.encoders.ImageEncoder.encode(Load.imageDataGrayscale(img))
+            console.log(imagePartitions)
+            var partitions = Partition.SDRMatrix({matrix:imagePartitions,windowSize:2,stepSize:2,range:2048})
+            console.log(partitions)
+            var partitions = Partition.SDRMatrix({matrix:partitions,windowSize:2,stepSize:2,range:2048})
+            console.log(partitions)
+        </script>
+
+        <script nb>
+            var graph = SDRKit.Graph()
+            var image = graph.create({type:'image',params:{image:img}})
+            var encoder = graph.create({type:'imageEncoder',sources:[image]})
         </script>
 
         <!-- SETUP -->

@@ -100,6 +100,14 @@ module.exports = class SDR {
         return sparsified
     }
 
+    static Concat(arrs,range){
+        const indices = []
+        for(var i = 0; i < arrs.length; i++)
+            for(var j = 0; j < arrs[i].length; j++)
+                indices.push((i * range) + arrs[i][j])
+        return indices
+    }
+
     static BinaryToIndexArray(arr){
         const indices = []
         for(var i = 0; i < arr.length; i++)

@@ -9,6 +9,11 @@ window.SDRKit = {
     SDRClassifier: require('../src/core/SDRClassifier'),
     Graph: require('../src/core/Graph'),
 
+    // encoders
+    encoders: {
+        ImageEncoder: require('../src/core/encoders/ImageEncoder')
+    },
+
     // util
     Partition: require('../src/util/Partition'),
     Load: require('../src/util/Load'),
@@ -18,7 +23,7 @@ window.SDRKit = {
     visual: require('../src/visual/Visual')
     
 }
-},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/util/Load":7,"../src/util/Partition":8,"../src/visual/Notebook":9,"../src/visual/Visual":10}],2:[function(require,module,exports){
+},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/core/encoders/ImageEncoder":7,"../src/util/Load":8,"../src/util/Partition":9,"../src/visual/Notebook":10,"../src/visual/Visual":11}],2:[function(require,module,exports){
 
 const SDR = require('./SDR')
 const SDRClassifier = require('./SDRClassifier')
@@ -208,6 +213,14 @@ module.exports = class SDR {
             index = index + 1 == arrs.length ? 0 : index + 1
         }
         return sparsified
+    }
+
+    static Concat(arrs,range){
+        const indices = []
+        for(var i = 0; i < arrs.length; i++)
+            for(var j = 0; j < arrs[i].length; j++)
+                indices.push((i * range) + arrs[i][j])
+        return indices
     }
 
     static BinaryToIndexArray(arr){
@@ -451,6 +464,66 @@ module.exports = class SDRMap {
 }
 },{}],7:[function(require,module,exports){
 
+const Partition = require('../../util/Partition')
+const SDR = require('../SDR')
+
+var H = SDR.Random(8,2048) // horizontal
+var V = SDR.Random(8,2048) // vertical
+var DU = SDR.Random(8,2048) // diagonal up
+var DD = SDR.Random(8,2048) // diagonal down
+var E = SDR.Random(8,2048) // empty
+var F = SDR.Random(8,2048) // full
+
+const pixelMap = {
+    '0,0,0,0': E,
+    '1,1,1,1': F,
+    '1,0,0,0': DU,
+    '0,1,0,0': DD,
+    '0,0,1,0': DD,
+    '0,0,0,1': DU,
+    '1,1,0,0': H,
+    '0,0,1,1': H,
+    '1,0,1,0': V,
+    '0,1,0,1': V,
+    '0,1,1,0': DU,
+    '1,0,0,1': DD,
+    '1,1,1,0': DU,
+    '1,0,1,1': DD,
+    '1,1,0,1': DD,
+    '0,1,1,1': DU
+}
+
+module.exports = {
+
+    H, V, DU, DD, E, F,
+
+    pixelMap,
+
+    encode(matrix){
+
+        const partitions = Partition.matrix({matrix,windowSize:2,stepSize:1})
+        const sdrMatrix = []
+
+        for(var yi = 0; yi < partitions.length; yi++){
+            sdrMatrix[yi] = []
+            for(var xi = 0; xi < partitions[yi].length; xi++){
+                var partition = []
+                for(var y = 0; y < partitions[yi][xi].length; y++){
+                    for(var x = 0; x < partitions[yi][xi][y].length; x++){
+                        partition.push(partitions[yi][xi][y][x] / 127 < 1 ? 1 : 0)
+                    }
+                }
+                sdrMatrix[yi][xi] = pixelMap[partition.join(',')]
+            }
+        }
+
+        return sdrMatrix
+
+    }
+
+}
+},{"../../util/Partition":9,"../SDR":3}],8:[function(require,module,exports){
+
 module.exports = {
 
     imageDataGrayscale: (img) => {
@@ -474,28 +547,55 @@ module.exports = {
     }
 
 }
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+
+const SDR = require('../core/SDR')
 
 module.exports = {
 
     matrix: function({matrix,windowSize,stepSize,callback}){
 
-        var steps = matrix.length - (windowSize - 1)
+        var steps = matrix.length - stepSize
         var partitions = []
 
         for(var yi = 0; yi < steps; yi += stepSize){
-            partitions[yi] = []
+            partitions[yi/stepSize] = []
             for(var xi = 0; xi < steps; xi += stepSize){
-                partitions[yi][xi] = []
+                partitions[yi/stepSize][xi/stepSize] = []
                 for(var y = 0; y < windowSize; y++){
-                    partitions[yi][xi][y] = []
+                    partitions[yi/stepSize][xi/stepSize][y] = []
                     for(var x = 0; x < windowSize; x++){
-                        var pixel = matrix[yi+y][xi+x]
-                        partitions[yi][xi][y][x] = pixel
+                        var val = matrix[yi+y][xi+x]
+                        partitions[yi/stepSize][xi/stepSize][y][x] = val
                         if(callback)
-                            callback(pixel,xi,yi,x,y)
+                            callback(val,xi,yi,x,y)
                     }
                 }
+            }
+        }
+
+        return partitions
+
+    },
+
+    SDRMatrix: function({matrix,windowSize,stepSize,range,callback}){
+
+        var steps = matrix.length - stepSize
+        var partitions = []
+
+        for(var yi = 0; yi < steps; yi += stepSize){
+            partitions[yi/stepSize] = []
+            for(var xi = 0; xi < steps; xi += stepSize){
+                var partition = []
+                for(var y = 0; y < windowSize; y++){
+                    for(var x = 0; x < windowSize; x++){
+                        var val = matrix[yi+y][xi+x]
+                        partition.push(val)
+                        if(callback)
+                            callback(val,xi,yi,x,y)
+                    }
+                }
+                partitions[yi/stepSize][xi/stepSize] = SDR.Concat(partition,range)
             }
         }
 
@@ -504,7 +604,7 @@ module.exports = {
     }
 
 }
-},{}],9:[function(require,module,exports){
+},{"../core/SDR":3}],10:[function(require,module,exports){
 
 module.exports = {
 
@@ -538,7 +638,7 @@ module.exports = {
     }
 
 }
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 
 var SDR = require('../core/SDR')
 var Load = require('../util/Load')
@@ -608,4 +708,4 @@ module.exports = {
     }
 
 }
-},{"../core/SDR":3,"../util/Load":7,"../util/Partition":8}]},{},[1]);
+},{"../core/SDR":3,"../util/Load":8,"../util/Partition":9}]},{},[1]);
