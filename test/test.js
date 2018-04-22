@@ -5,6 +5,7 @@ const SDRMap = require('../src/core/SDRMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
 const SDRClassifier = require('../src/core/SDRClassifier')
 const Graph = require('../src/core/Graph')
+const Matrix = require('../src/core/Matrix')
 
 describe('SDR', () => {
 
@@ -302,6 +303,123 @@ describe('SDRClassifier', () => {
         expect(match1).to.deep.equal(a)
         const match2 = classifier.get([1,2,3,14,15,16,17,18])
         expect(match2).to.deep.equal(b)
+    })
+
+})
+
+describe('Matrix', () => {
+
+    it('should create a matrix', () => {
+        var matrix = Matrix.create({size:4,value:1})
+        expect(matrix).to.deep.equal([
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1]
+        ])
+    })
+
+    it('should process a matrix', () => {
+        var matrix = Matrix.create({size:4,value:1})
+        var doubled = Matrix.process({matrix,operation: val => {
+            return val * 2
+        }})
+        expect(doubled).to.deep.equal([
+            [2,2,2,2],
+            [2,2,2,2],
+            [2,2,2,2],
+            [2,2,2,2]
+        ])
+    })
+
+    it('should merge multiple matrices', () => {
+        var m1 = Matrix.create({size:4,value:[1,2]})
+        var m2 = Matrix.create({size:4,value:[3,4]})
+        var merged = Matrix.merge([m1,m2])
+        expect(merged).to.deep.equal([
+            [[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]]],
+            [[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]]],
+            [[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]]],
+            [[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]],[[1,2],[3,4]]]
+        ])
+    })
+
+    it('should process an SDR matrix', () => {
+        var m1 = Matrix.create({size:4,value:[1,2,3,4,5,6,7,8]})
+        var m2 = Matrix.create({size:4,value:[5,6,7,8,9,10,11,12]})
+        var merged = Matrix.merge([m1,m2])
+        var processed = Matrix.process({matrix:merged,operation: (sdrs) => {
+            return SDR.AND(sdrs)
+        }})
+        expect(processed).to.deep.equal([
+            [[5,6,7,8],[5,6,7,8],[5,6,7,8],[5,6,7,8]],
+            [[5,6,7,8],[5,6,7,8],[5,6,7,8],[5,6,7,8]],
+            [[5,6,7,8],[5,6,7,8],[5,6,7,8],[5,6,7,8]],
+            [[5,6,7,8],[5,6,7,8],[5,6,7,8],[5,6,7,8]]
+        ])
+    })
+
+    it('should partition a matrix', () => {
+        var matrix = [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10,11,12],
+            [13,14,15,16]
+        ]
+        var partitioned = Matrix.partition({matrix,size:2})
+        expect(partitioned).to.deep.equal([
+            [ [[1,2],[5,6]], [[3,4],[7,8]] ],
+            [ [[9,10],[13,14]], [[11,12],[15,16]] ]
+        ])
+    })
+
+    it('should get a neighborhood of a cell from a matrix', () => {
+        var matrix = [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10,11,12],
+            [13,14,15,16]
+        ]
+        var neighbors = Matrix.neighborhood({matrix,x:1,y:2,size:3})
+        expect(neighbors).to.deep.equal([5,6,7,9,10,11,13,14,15])
+        var neighbors = Matrix.neighborhood({matrix,x:3,y:1,size:3,fallback:0})
+        expect(neighbors).to.deep.equal([3,4,0,7,8,0,11,12,0])
+    })
+
+    it('should convolve a matrix', () => {
+        var matrix = [
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10,11,12],
+            [13,14,15,16]
+        ]
+        var convolved = Matrix.convolve({matrix,size:3})
+        expect(convolved).to.deep.equal([
+            [
+                [ 0, 0, 0, 0, 1, 2, 0, 5, 6 ],
+                [ 0, 0, 0, 1, 2, 3, 5, 6, 7 ],
+                [ 0, 0, 0, 2, 3, 4, 6, 7, 8 ],
+                [ 0, 0, 0, 3, 4, 0, 7, 8, 0 ]
+            ],
+            [
+                [ 0, 1, 2, 0, 5, 6, 0, 9, 10 ],
+                [ 1, 2, 3, 5, 6, 7, 9, 10, 11 ],
+                [ 2, 3, 4, 6, 7, 8, 10, 11, 12 ],
+                [ 3, 4, 0, 7, 8, 0, 11, 12, 0 ]
+            ],
+            [
+                [ 0, 5, 6, 0, 9, 10, 0, 13, 14 ],
+                [ 5, 6, 7, 9, 10, 11, 13, 14, 15 ],
+                [ 6, 7, 8, 10, 11, 12, 14, 15, 16 ],
+                [ 7, 8, 0, 11, 12, 0, 15, 16, 0 ]
+            ],
+            [
+                [ 0, 9, 10, 0, 13, 14, 0, 0, 0 ],
+                [ 9, 10, 11, 13, 14, 15, 0, 0, 0 ],
+                [ 10, 11, 12, 14, 15, 16, 0, 0, 0 ],
+                [ 11, 12, 0, 15, 16, 0, 0, 0, 0 ]
+            ]
+        ])
     })
 
 })
