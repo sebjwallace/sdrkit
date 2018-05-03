@@ -3,8 +3,8 @@ const ImageEncoder = require('../encoders/ImageEncoder')
 
 module.exports = {
 
-    compute(inputs){
-        return ImageEncoder.encode(inputs[0])
+    compute(sources){
+        return ImageEncoder.encode(sources[0])
     }
 
 }

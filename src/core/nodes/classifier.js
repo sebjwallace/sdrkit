@@ -6,8 +6,8 @@ module.exports = {
         node.instance = new SDRClassifier()
     },
 
-    compute(inputs,node){
-        return node.instance.get(SDR.Sparsify(inputs),node.params.population)
+    compute(sources,node){
+        return node.instance.get(SDR.Sparsify(sources),node.params.population)
     }
 
 }

@@ -2,6 +2,7 @@ const chai = require('chai')
 const expect = chai.expect
 const SDR = require('../src/core/SDR')
 const SDRMap = require('../src/core/SDRMap')
+const SDRAMap = require('../src/core/SDRAMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
 const SDRClassifier = require('../src/core/SDRClassifier')
 const Graph = require('../src/core/Graph')
@@ -119,6 +120,24 @@ describe('SDR', () => {
         expect(sdr.xor([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
     })
 
+    it('should gate indices using OR', () => {
+        const a = [1,8,14,19,27,44,52,79]
+        const b = [8,22,37,44,54,61,79,99]
+        const c = [1,14,19,22,27,37,52,54,61,99]
+        expect(SDR.GOR(c,[a,b])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
+        expect(SDR.GOR(c,[a,[]])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
+        expect(SDR.GOR(c,[[],[]])).to.deep.equal([])
+    })
+
+    it('should gate indices using AND', () => {
+        const a = [1,8,14,19,27,44,52,79]
+        const b = [8,22,37,44,54,61,79,99]
+        const c = [1,14,19,22,27,37,52,54,61,99]
+        expect(SDR.GAND(c,[a,b])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
+        expect(SDR.GAND(c,[a,[]])).to.deep.equal([])
+        expect(SDR.GAND(c,[[],[]])).to.deep.equal([])
+    })
+
     it('should return a subsample of the origional index array', () => {
         const sdr = new SDR({indices:[1,2,3,4,5,6,7,8]})
         expect(sdr.subsample(4)).to.deep.equal([1,3,5,7])
@@ -148,7 +167,7 @@ describe('SDR', () => {
 
     it('should return indices of the highest reoccuring indices of a fixed population', () => {
         const trimmed = SDR.Trim([2,12,16,16,43,43,43,58,76,91,91,91,91,101,101,117,117,200,200,278,340,340,421,500,500],8)
-        expect(trimmed).to.deep.equal([91,43,101,500,340,200,16,117])
+        expect(trimmed).to.deep.equal([16,43,91,101,117,200,340,500])
     })
 
     it('should return a sorted list of index array with the most similar at index 0', () => {
@@ -230,6 +249,29 @@ describe('SDRMap', () => {
         // if the map had a threshold of 0.5 ths map would return a & b
         var state = map.get(SDR.Subsample(SDR.OR([a,d]),8))
         expect(state).to.deep.equal(b)
+    })
+
+    it('should get a value of a large key', () => {
+        let map = new SDRMap()
+        map.population = 32
+        var a = [5, 43, 74, 100, 143, 191, 218, 243]
+        var b = [2, 35, 64, 109, 139, 187, 195, 234]
+        var c = [17, 46, 86, 123, 156, 189, 212, 251]
+        var d = [19, 33, 95, 124, 149, 187, 205, 241]
+        map.set(SDR.OR([a,b,c,d]),[11,12,13,14,15,16,17,18])
+        expect(map.get(SDR.OR([a,b,c,d]))).to.deep.equal([11,12,13,14,15,16,17,18])
+        expect(map.get(SDR.Subsample(SDR.OR([a,b,c,d]),17))).to.deep.equal([11,12,13,14,15,16,17,18])
+    })
+
+})
+
+describe('SDRAMap', () => {
+
+    it('should store and retrieve an analog value', () => {
+        const map = new SDRAMap()
+        map.set([1,2,3,4,5,6,7,8],[11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18])
+        const result = map.get([1,2,3,4,5,6,7,8])
+        expect(result).to.deep.equal([11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18])
     })
 
 })
@@ -427,12 +469,12 @@ describe('Matrix', () => {
 describe('Graph', () => {
 
     it('should compute', () => {
-        const graph = Graph.Compute([
-            {id:1,type:'sdr',state:[1,2,3,4,5,6,7,8]},
-            {id:2,type:'sdr',state:[5,6,7,8,9,10,11,12]},
-            {id:3,type:'and',sources:[1,2]}
-        ])
-        expect(graph[2].state).to.deep.equal([5,6,7,8])
+        const graph = Graph.Compute({
+            1: {type:'sdr',state:[1,2,3,4,5,6,7,8]},
+            2: {type:'sdr',state:[5,6,7,8,9,10,11,12]},
+            3: {type:'and',sources:[1,2]}
+        })
+        expect(graph[3].state).to.deep.equal([5,6,7,8])
     })
 
     it('can build a graph', () => {
@@ -441,7 +483,18 @@ describe('Graph', () => {
         const b = graph.create({type:'sdr',state:[5,6,7,8,9,10,11,12]})
         const c = graph.create({type:'and'})
         graph.connect(a,c).connect(b,c)
-        expect(graph.compute()[2].state).to.deep.equal([5,6,7,8])
+        graph.compute()
+        expect(c.state).to.deep.equal([5,6,7,8])
+    })
+
+    it('can build a graph from json', () => {
+        const graph = new Graph({
+            a: {type:'sdr',state:[1,2,3,4,5,6,7,8]},
+            b: {type:'sdr',state:[5,6,7,8,9,10,11,12]},
+            c: {type:'and',sources:['a','b']}
+        })
+        graph.compute()
+        expect(graph.nodes['c'].state).to.deep.equal([5,6,7,8])
     })
 
 })
