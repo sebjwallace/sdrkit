@@ -4,6 +4,7 @@ const SDR = require('../src/core/SDR')
 const SDRMap = require('../src/core/SDRMap')
 const SDRAMap = require('../src/core/SDRAMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
+const SDRRepository = require('../src/core/SDRRepository')
 const Graph = require('../src/core/Graph')
 const Matrix = require('../src/core/Matrix')
 
@@ -306,6 +307,28 @@ describe('SDRDictionary', () => {
         dict.set([1,2,3,4,5,6,7,8],'white')
         dict.set([9,10,11,12,13,14,15,16],'black')
         expect(dict.get([4,5,6,7,8,9,10,11,12,13])).to.deep.equal(['white','black'])
+    })
+
+})
+
+describe('SDRRepository', () => {
+
+    it('should store sdrs and retrieve matching ones in order of similarity', () => {
+        const repo = new SDRRepository()
+        const sdr1 = [1,2,3,4,5,6,7,8]
+        var sdr2 = [7,8,9,10,11,12,13,14]
+        var sdr3 = [8,9,10,11,12,13,14,15]
+        var sdr4 = [11,12,13,14,15,16,17,18]
+        repo.add(sdr1)
+        repo.add(sdr2)
+        repo.add(sdr3)
+        repo.add(sdr4)
+        const result = repo.get(sdr1)
+        expect(result).to.deep.equal([
+            [ 1, 2, 3, 4, 5, 6, 7, 8 ],
+            [ 7, 8, 9, 10, 11, 12, 13, 14 ],
+            [ 8, 9, 10, 11, 12, 13, 14, 15 ]
+        ])
     })
 
 })
