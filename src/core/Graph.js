@@ -7,7 +7,6 @@ const NODES = {
     xor: require('./nodes/xor'),
     sparsify: require('./nodes/xor'),
     map: require('./nodes/map'),
-    classifier: require('./nodes/classifier'),
     reencoder: require('./nodes/reencoder'),
     image: require('./nodes/image'),
     imageEncoder: require('./nodes/imageEncoder'),

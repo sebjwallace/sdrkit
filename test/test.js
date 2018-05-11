@@ -4,7 +4,6 @@ const SDR = require('../src/core/SDR')
 const SDRMap = require('../src/core/SDRMap')
 const SDRAMap = require('../src/core/SDRAMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
-const SDRClassifier = require('../src/core/SDRClassifier')
 const Graph = require('../src/core/Graph')
 const Matrix = require('../src/core/Matrix')
 
@@ -307,44 +306,6 @@ describe('SDRDictionary', () => {
         dict.set([1,2,3,4,5,6,7,8],'white')
         dict.set([9,10,11,12,13,14,15,16],'black')
         expect(dict.get([4,5,6,7,8,9,10,11,12,13])).to.deep.equal(['white','black'])
-    })
-
-})
-
-describe('SDRClassifier', () => {
-
-    it('should assign an unassigned SDR input to a random SDR output', () => {
-        const classifier = new SDRClassifier()
-        const out = classifier.get([1,2,3,4,5,6,7,8])
-        expect(out.length).to.equal(8)
-    })
-
-    it('should return the same output SDR to the same input SDR', () => {
-        const classifier = new SDRClassifier()
-        const out1 = classifier.get([1,2,3,4,5,6,7,8])
-        const out2 = classifier.get([1,2,3,4,5,6,7,8])
-        expect(out1).to.deep.equal(out2)
-    })
-
-    it('should return different output SDRs to different input SDRs', () => {
-        const classifier = new SDRClassifier()
-        const out1 = classifier.get([2, 35, 64, 109, 139, 187, 195, 234])
-        const out2 = classifier.get([2, 35, 64, 109, 139, 187, 195, 234])
-        const out3 = classifier.get([17, 46, 86, 123, 156, 189, 212, 251])
-        const out4 = classifier.get([17, 46, 86, 123, 156, 189, 212, 251])
-        expect(out1).to.not.deep.equal(out3)
-        expect(out1).to.deep.equal(out2)
-        expect(out3).to.deep.equal(out4)
-    })
-
-    it('should return the highest matching SDR between two input SDRs', () => {
-        const classifier = new SDRClassifier()
-        var a = classifier.get([1,2,3,4,5,6,7,8])
-        var b = classifier.get([11,12,13,14,15,16,17,18])
-        const match1 = classifier.get([1,2,3,4,5,16,17,18])
-        expect(match1).to.deep.equal(a)
-        const match2 = classifier.get([1,2,3,14,15,16,17,18])
-        expect(match2).to.deep.equal(b)
     })
 
 })
