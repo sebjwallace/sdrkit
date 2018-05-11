@@ -1,11 +1,14 @@
 
 const NODES = {
+    const: require('./nodes/const'),
     sdr: require('./nodes/sdr'),
     or: require('./nodes/or'),
     and: require('./nodes/and'),
     xor: require('./nodes/xor'),
     sparsify: require('./nodes/xor'),
+    map: require('./nodes/map'),
     classifier: require('./nodes/classifier'),
+    reencoder: require('./nodes/reencoder'),
     image: require('./nodes/image'),
     imageEncoder: require('./nodes/imageEncoder'),
     partition: require('./nodes/partition')
@@ -13,13 +16,16 @@ const NODES = {
 
 module.exports = class Graph {
 
-    constructor(){
-        this.graph = []
+    constructor(nodes){
+        this.nodes = {}
+        if(nodes)
+            this.fromJSON(nodes)
     }
 
-    create({type='sdr',sources=[],state=[],params={}} = {}){
+    create({id,type='sdr',sources=[],state=[],params={}} = {}){
+        id = id || Math.random().toString(36).substring(7)
         const node = {
-            id: Math.random().toString(36).substring(7),
+            id,
             type,
             sources: sources.map(s => typeof s == 'string' ? s : s.id),
             state,
@@ -28,7 +34,7 @@ module.exports = class Graph {
         }
         if(NODES[node.type].create)
             NODES[node.type].create(node)
-        this.graph.push(node)
+        this.nodes[node.id] = node
         return node
     }
 
@@ -44,28 +50,36 @@ module.exports = class Graph {
     }
 
     compute(){
-        return this.graph = Graph.Compute(this.graph)
+        return this.nodes = Graph.Compute(this.nodes)
     }
 
-    static Compute(graph){
+    static Compute(nodes){
 
-        const nodes = {}
+        for(var i in nodes)
+            nodes[i]._state = nodes[i].state
 
-        return graph
-            .map(node => {
-                node._state = node.state
-                nodes[node.id] = node
-                return node
-            })
-            .map(node => {
-                const inputs = []
-                if(node.sources && node.sources.length){
-                    for(var i = 0; i < node.sources.length; i++)
-                        inputs.push(nodes[node.sources[i]]._state)
-                    node.state = NODES[node.type].compute(inputs,node)
-                }
-                return node
-            })
+        for(var i in nodes){
+            const node = nodes[i]
+            const sources = []
+            if((node.sources && node.sources.length) || node.value){
+                for(var i = 0; i < node.sources.length; i++)
+                    sources.push(nodes[node.sources[i]]._state)
+                node.state = NODES[node.type].compute(sources,node)
+            }
+        }
+
+        return nodes
+    }
+
+    fromJSON(json){
+        for(var i in json){
+            json[i].id = i
+            this.create(json[i])
+        }
+    }
+
+    toJSON(){
+        return JSON.parse(JSON.stringify(this.nodes))
     }
 
 }

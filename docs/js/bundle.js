@@ -5,6 +5,7 @@ window.SDRKit = {
     // core
     SDR: require('../src/core/SDR'),
     SDRMap: require('../src/core/SDRMap'),
+    SDRAMap: require('../src/core/SDRAMap'),
     SDRDictionary: require('../src/core/SDRDictionary'),
     SDRClassifier: require('../src/core/SDRClassifier'),
     Graph: require('../src/core/Graph'),
@@ -23,10 +24,19 @@ window.SDRKit = {
     visual: require('../src/visual/Visual')
     
 }
-},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRClassifier":4,"../src/core/SDRDictionary":5,"../src/core/SDRMap":6,"../src/core/encoders/ImageEncoder":7,"../src/util/Load":8,"../src/util/Partition":9,"../src/visual/Notebook":10,"../src/visual/Visual":11}],2:[function(require,module,exports){
+},{"../src/core/Graph":2,"../src/core/SDR":3,"../src/core/SDRAMap":4,"../src/core/SDRClassifier":5,"../src/core/SDRDictionary":6,"../src/core/SDRMap":7,"../src/core/encoders/ImageEncoder":8,"../src/util/Load":17,"../src/util/Partition":18,"../src/visual/Notebook":19,"../src/visual/Visual":20}],2:[function(require,module,exports){
 
-const SDR = require('./SDR')
-const SDRClassifier = require('./SDRClassifier')
+const NODES = {
+    sdr: require('./nodes/sdr'),
+    or: require('./nodes/or'),
+    and: require('./nodes/and'),
+    xor: require('./nodes/xor'),
+    sparsify: require('./nodes/xor'),
+    classifier: require('./nodes/classifier'),
+    image: require('./nodes/image'),
+    imageEncoder: require('./nodes/imageEncoder'),
+    partition: require('./nodes/partition')
+}
 
 module.exports = class Graph {
 
@@ -34,19 +44,17 @@ module.exports = class Graph {
         this.graph = []
     }
 
-    create({type='sdr',sources=[],state=[]} = {}){
+    create({type='sdr',sources=[],state=[],params={}} = {}){
         const node = {
             id: Math.random().toString(36).substring(7),
             type,
             sources: sources.map(s => typeof s == 'string' ? s : s.id),
             state,
             _state: [],
-            params: {}
+            params
         }
-        if(type == 'node')
-            node.instance = node.constructor()
-        if(type == 'classifier')
-            node.instance = new SDRClassifier()
+        if(NODES[node.type].create)
+            NODES[node.type].create(node)
         this.graph.push(node)
         return node
     }
@@ -68,30 +76,6 @@ module.exports = class Graph {
 
     static Compute(graph){
 
-        const operations = {
-            node(){
-                return node.compute(inputs,node)
-            },
-            sdr(inputs){
-                return SDR.OR(inputs)
-            },
-            or(inputs){
-                return SDR.OR(inputs)
-            },
-            and(inputs){
-                return SDR.AND(inputs)
-            },
-            xor(inputs){
-                return SDR.Difference(inputs)
-            },
-            sparsify(inputs){
-                return SDR.Sparsify(inputs)
-            },
-            classifier(inputs,node){
-                return node.instance.get(SDR.Sparsify(inputs),node.params.population)
-            }
-        }
-
         const nodes = {}
 
         return graph
@@ -105,14 +89,14 @@ module.exports = class Graph {
                 if(node.sources && node.sources.length){
                     for(var i = 0; i < node.sources.length; i++)
                         inputs.push(nodes[node.sources[i]]._state)
-                    node.state = operations[node.type](inputs,node)
+                    node.state = NODES[node.type].compute(inputs,node)
                 }
                 return node
             })
     }
 
 }
-},{"./SDR":3,"./SDRClassifier":4}],3:[function(require,module,exports){
+},{"./nodes/and":9,"./nodes/classifier":10,"./nodes/image":11,"./nodes/imageEncoder":12,"./nodes/or":13,"./nodes/partition":14,"./nodes/sdr":15,"./nodes/xor":16}],3:[function(require,module,exports){
 
 module.exports = class SDR {
 
@@ -159,6 +143,7 @@ module.exports = class SDR {
             .sort((a,b) => b.depth - a.depth)
             .map(i => i.index)
             .splice(0,population)
+            .sort((a,b) => a - b)
     }
 
     static Sum(arrs){
@@ -177,6 +162,14 @@ module.exports = class SDR {
                 indices1.splice(index,1)
         }
         return indices1
+    }
+
+    static Multiply(indices,multiplier){
+        const product = []
+        for(var i = 0; i < indices.length; i++)
+            for(var j = 0; j < multiplier; j++)
+                product.push(indices[i])
+        return product
     }
 
     static OR(arrs){
@@ -351,6 +344,29 @@ module.exports = class SDR {
 
 const SDR = require('./SDR')
 const SDRMap = require('./SDRMap')
+
+module.exports = class {
+
+    constructor(population,threshold){
+        this.map = new SDRMap(population,threshold)
+        this.analogs = {}
+    }
+
+    set(key,value){
+        this.analogs[SDR.Flatten(value).join(',')] = value
+        return this.map.set(key,value)
+    }
+
+    get(key){
+        const value = this.map.get(key)
+        return this.analogs[(value || []).join(',')] || []
+    }
+
+}
+},{"./SDR":3,"./SDRMap":7}],5:[function(require,module,exports){
+
+const SDR = require('./SDR')
+const SDRMap = require('./SDRMap')
 const SDRDictionary = require('./SDRDictionary')
 
 module.exports = class SDRClassifier {
@@ -384,7 +400,7 @@ module.exports = class SDRClassifier {
     }
 
 }
-},{"./SDR":3,"./SDRDictionary":5,"./SDRMap":6}],5:[function(require,module,exports){
+},{"./SDR":3,"./SDRDictionary":6,"./SDRMap":7}],6:[function(require,module,exports){
 
 const SDR = require('./SDR')
 const SDRMap = require('./SDRMap')
@@ -424,7 +440,7 @@ module.exports = class SDRDictionary {
     }
 
 }
-},{"./SDR":3,"./SDRMap":6}],6:[function(require,module,exports){
+},{"./SDR":3,"./SDRMap":7}],7:[function(require,module,exports){
 
 module.exports = class SDRMap {
 
@@ -462,7 +478,7 @@ module.exports = class SDRMap {
     }
 
 }
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 const Partition = require('../../util/Partition')
 const SDR = require('../SDR')
@@ -522,7 +538,89 @@ module.exports = {
     }
 
 }
-},{"../../util/Partition":9,"../SDR":3}],8:[function(require,module,exports){
+},{"../../util/Partition":18,"../SDR":3}],9:[function(require,module,exports){
+
+const SDR = require('../SDR')
+
+module.exports = {
+
+    compute(inputs){
+        return SDR.AND(inputs)
+    }
+
+}
+},{"../SDR":3}],10:[function(require,module,exports){
+const SDRClassifier = require('../SDRClassifier')
+
+module.exports = {
+
+    create(node){
+        node.instance = new SDRClassifier()
+    },
+
+    compute(inputs,node){
+        return node.instance.get(SDR.Sparsify(inputs),node.params.population)
+    }
+
+}
+},{"../SDRClassifier":5}],11:[function(require,module,exports){
+
+const Load = require('../../util/Load')
+
+module.exports = {
+
+    compute(inputs,node){
+        return Load.imageDataGrayscale(node.params.image)
+    }
+
+}
+},{"../../util/Load":17}],12:[function(require,module,exports){
+
+const ImageEncoder = require('../encoders/ImageEncoder')
+
+module.exports = {
+
+    compute(inputs){
+        return ImageEncoder.encode(inputs[0])
+    }
+
+}
+},{"../encoders/ImageEncoder":8}],13:[function(require,module,exports){
+
+const SDR = require('../SDR')
+
+module.exports = {
+
+    compute(inputs){
+        return SDR.OR(inputs)
+    }
+
+}
+},{"../SDR":3}],14:[function(require,module,exports){
+
+const Partition = require('../../util/Partition')
+
+module.exports = {
+
+    compute(inputs,node){
+        return Partition.SDRMatrix({matrix:inputs[0]}, ...node.params)
+    }
+
+}
+},{"../../util/Partition":18}],15:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"../SDR":3,"dup":13}],16:[function(require,module,exports){
+
+const SDR = require('../SDR')
+
+module.exports = {
+
+    compute(inputs){
+        return SDR.XOR(inputs)
+    }
+
+}
+},{"../SDR":3}],17:[function(require,module,exports){
 
 module.exports = {
 
@@ -547,7 +645,7 @@ module.exports = {
     }
 
 }
-},{}],9:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
 const SDR = require('../core/SDR')
 
@@ -604,7 +702,7 @@ module.exports = {
     }
 
 }
-},{"../core/SDR":3}],10:[function(require,module,exports){
+},{"../core/SDR":3}],19:[function(require,module,exports){
 
 module.exports = {
 
@@ -638,7 +736,7 @@ module.exports = {
     }
 
 }
-},{}],11:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 var SDR = require('../core/SDR')
 var Load = require('../util/Load')
@@ -708,4 +806,4 @@ module.exports = {
     }
 
 }
-},{"../core/SDR":3,"../util/Load":8,"../util/Partition":9}]},{},[1]);
+},{"../core/SDR":3,"../util/Load":17,"../util/Partition":18}]},{},[1]);

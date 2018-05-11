@@ -44,6 +44,7 @@ module.exports = class SDR {
             .sort((a,b) => b.depth - a.depth)
             .map(i => i.index)
             .splice(0,population)
+            .sort((a,b) => a - b)
     }
 
     static Sum(arrs){
@@ -64,6 +65,14 @@ module.exports = class SDR {
         return indices1
     }
 
+    static Multiply(indices,multiplier){
+        const product = []
+        for(var i = 0; i < indices.length; i++)
+            for(var j = 0; j < multiplier; j++)
+                product.push(indices[i])
+        return product
+    }
+
     static OR(arrs){
         return SDR.Filter({indices:SDR.Sum(arrs),min:1,ceil:1})
     }
@@ -74,6 +83,20 @@ module.exports = class SDR {
 
     static XOR(arrs){
         return SDR.Filter({indices:SDR.Sum(arrs),min:1,max:1})
+    }
+
+    static GAND(indices,sources){
+        for(var i = 0; i < sources.length; i++)
+            if(!sources[i].length)
+                return []
+        return indices
+    }
+
+    static GOR(indices,sources){
+        for(var i = 0; i < sources.length; i++)
+            if(sources[i].length)
+                return indices
+        return []
     }
 
     static Flatten(indices){
