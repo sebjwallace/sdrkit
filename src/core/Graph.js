@@ -61,7 +61,11 @@ module.exports = class Graph {
         for(var i in nodes){
             const node = nodes[i]
             const sources = []
+<<<<<<< HEAD
             if((node.sources && node.sources.length) || node.value){
+=======
+            if(node.sources && node.sources.length){
+>>>>>>> 9e694e502de5c6d78392be1f3c36fcd2aa045ac7
                 for(var i = 0; i < node.sources.length; i++)
                     sources.push(nodes[node.sources[i]]._state)
                 node.state = NODES[node.type].compute(sources,node)
