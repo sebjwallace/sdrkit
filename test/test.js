@@ -5,6 +5,7 @@ const SDRMap = require('../src/core/SDRMap')
 const SDRAMap = require('../src/core/SDRAMap')
 const SDRDictionary = require('../src/core/SDRDictionary')
 const SDRRepository = require('../src/core/SDRRepository')
+const Buffer = require('../src/core/Buffer')
 const Graph = require('../src/core/Graph')
 const Matrix = require('../src/core/Matrix')
 
@@ -101,6 +102,7 @@ describe('SDR', () => {
         expect(sdr.subtract([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,27,52])
         sdr = new SDR({indices:[1,8,14,19,27,27,44,52,79,79,79]})
         expect(sdr.subtract([8,22,27,37,44,54,61,79,99])).to.deep.equal([1,14,19,27,52,79,79])
+        expect(SDR.Subtract([1,1,2,2,3,3,4,4,5],[1,2,3,4])).to.deep.equal([1,2,3,4,5])
     })
 
     it('should OR indices from another set', () => {
@@ -323,12 +325,66 @@ describe('SDRRepository', () => {
         repo.add(sdr2)
         repo.add(sdr3)
         repo.add(sdr4)
-        const result = repo.get(sdr1)
+        const result = repo.sort(sdr1)
         expect(result).to.deep.equal([
             [ 1, 2, 3, 4, 5, 6, 7, 8 ],
             [ 7, 8, 9, 10, 11, 12, 13, 14 ],
             [ 8, 9, 10, 11, 12, 13, 14, 15 ]
         ])
+    })
+
+    it('should store and retrieve sdr with reoccuring indices', () => {
+        const repo = new SDRRepository()
+        const sdr1 = [1,2,2,3,3,3,4,4,4,4]
+        const sdr2 = [2,3,3,4,4,4,5,5,5,5]
+        const sdr3 = [3,4,4,5,5,5,6,6,6,6]
+        repo.add(sdr1)
+        repo.add(sdr2)
+        repo.add(sdr3)
+        const result = repo.sort(sdr1)
+        expect(result).to.deep.equal([
+            [ 1, 2, 2, 3, 3, 3, 4, 4, 4, 4 ],
+            [ 2, 3, 3, 4, 4, 4, 5, 5, 5, 5 ],
+            [ 3, 4, 4, 5, 5, 5, 6, 6, 6, 6 ]
+        ])
+    })
+
+    it('should sort by the most relevant sdr', () => {
+        const repo = new SDRRepository()
+        const sdr1 = [1,2,3,4]
+        const sdr2 = [1,2,3,4,5]
+        const sdr3 = [1,1,2,2,3,3,4,4]
+        const sdr4 = [1,1,1,2,2,2,3,3,3,4,4,4]
+        repo.add(sdr2)
+        repo.add(sdr1)
+        repo.add(sdr4)
+        repo.add(sdr3)
+        const result = repo.sort([1,2,3,4])
+        expect(result).to.deep.equal([sdr1,sdr2,sdr3,sdr4])
+    })
+
+})
+
+describe('Buffer', () => {
+
+    it('should hold a number of sdrs and sum them', () => {
+        var buff = new Buffer(4)
+        var state = buff.next([1,2,3,4])
+        expect(state).to.deep.equal([1,2,3,4])
+        state = buff.next([5,6,7,8])
+        expect(state).to.deep.equal([1,2,3,4,5,6,7,8])
+        state = buff.next([1,2,7,8])
+        expect(state).to.deep.equal([1,1,2,2,3,4,5,6,7,7,8,8])
+        state = buff.next([1,2,3,4])
+        expect(state).to.deep.equal([1,1,1,2,2,2,3,3,4,4,5,6,7,7,8,8])
+        state = buff.next([11,12,13,14])
+        expect(state).to.deep.equal([1,1,2,2,3,4,5,6,7,7,8,8,11,12,13,14])
+        state = buff.next([11,12,13,14])
+        expect(state).to.deep.equal([1,1,2,2,3,4,7,8,11,11,12,12,13,13,14,14])
+        state = buff.next([11,12,13,14])
+        expect(state).to.deep.equal([1,2,3,4,11,11,11,12,12,12,13,13,13,14,14,14])
+        state = buff.next([11,12,13,14])
+        expect(state).to.deep.equal([11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14])
     })
 
 })

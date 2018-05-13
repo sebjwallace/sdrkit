@@ -1,36 +1,61 @@
 
+const SDR = require('../core/SDR')
+
 module.exports = class {
 
     constructor(){
         this.sdrs = {}
         this.index = {}
+        this.map = {}
+    }
+
+    set(key,val){
+        this.add(key)
+        this.map[key] = val
+    }
+
+    get(key){
+        return this.map[this.match(key)]
     }
 
     add(sdr){
         var id = sdr.toString(',')
-        this.sdrs[id] = sdr
-        for(var i = 0; i < sdr.length; i++){
-            if(!this.index[sdr[i]])
-                this.index[sdr[i]] = []
-            this.index[sdr[i]].push(id)
+        if(!this.sdrs[id]){
+            this.sdrs[id] = sdr
+            for(var i = 0; i < sdr.length; i++){
+                if(!this.index[sdr[i]])
+                    this.index[sdr[i]] = []
+                this.index[sdr[i]].push(id)
+            }
         }
     }
 
-    get(sdr,args={}){
+    sort(sdr){
         const matches = {}
         var results = []
         for(var i = 0; i < sdr.length; i++){
-            for(var j = 0; j < this.index[sdr[i]].length; j++){
-                if(!matches[this.index[sdr[i]][j]]){
-                    matches[this.index[sdr[i]][j]] = 0
-                    results.push(this.sdrs[this.index[sdr[i]][j]])
+            const index = sdr[i]
+            const indexMatches = this.index[index]
+            for(var j = 0; j < indexMatches.length; j++){
+                const match = indexMatches[j]
+                if(!matches[match]){
+                    matches[match] = 0
+                    results.push(this.sdrs[match])
                 }
-                matches[this.index[sdr[i]][j]]++
+                matches[match]++
             }
         }
+        for(var i = 0; i < results.length; i++){
+            matches[results[i].toString(',')] /= SDR.Subtract(results[i],sdr).length + 1
+        }
         return results.sort((a,b) => {
-            matches[a.toString(',')] - matches[b.toString(',')]
-        })
+            return matches[a.toString(',')] - matches[b.toString(',')]
+        }).reverse()
+    }
+
+    match(sdr){
+        const sorted = this.sort(sdr)
+        return sorted[0]
     }
 
 }
