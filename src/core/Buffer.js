@@ -5,18 +5,17 @@ module.exports = class {
 
     constructor(size=8){
         this.size = size
-        this.queue = []
+        this.indices = []
     }
 
-    next(sdr){
-        this.queue.push(sdr)
-        if(this.queue.length > this.size)
-            this.queue.shift()
-        return SDR.Sum(this.queue)
+    next(sdrs){
+        this.indices = SDR.Subtract(this.indices,SDR.Flatten(this.indices))
+        this.indices = this.indices.concat(sdrs)
+        return this.indices
     }
 
     clear(){
-        this.queue = []
+        this.indices = []
     }
 
 }

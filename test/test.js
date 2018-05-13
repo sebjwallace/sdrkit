@@ -365,30 +365,6 @@ describe('SDRRepository', () => {
 
 })
 
-describe('Buffer', () => {
-
-    it('should hold a number of sdrs and sum them', () => {
-        var buff = new Buffer(4)
-        var state = buff.next([1,2,3,4])
-        expect(state).to.deep.equal([1,2,3,4])
-        state = buff.next([5,6,7,8])
-        expect(state).to.deep.equal([1,2,3,4,5,6,7,8])
-        state = buff.next([1,2,7,8])
-        expect(state).to.deep.equal([1,1,2,2,3,4,5,6,7,7,8,8])
-        state = buff.next([1,2,3,4])
-        expect(state).to.deep.equal([1,1,1,2,2,2,3,3,4,4,5,6,7,7,8,8])
-        state = buff.next([11,12,13,14])
-        expect(state).to.deep.equal([1,1,2,2,3,4,5,6,7,7,8,8,11,12,13,14])
-        state = buff.next([11,12,13,14])
-        expect(state).to.deep.equal([1,1,2,2,3,4,7,8,11,11,12,12,13,13,14,14])
-        state = buff.next([11,12,13,14])
-        expect(state).to.deep.equal([1,2,3,4,11,11,11,12,12,12,13,13,13,14,14,14])
-        state = buff.next([11,12,13,14])
-        expect(state).to.deep.equal([11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14])
-    })
-
-})
-
 describe('Matrix', () => {
 
     it('should create a matrix', () => {
