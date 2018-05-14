@@ -85,18 +85,25 @@ module.exports = class SDR {
         return SDR.Filter({indices:SDR.Sum(arrs),min:1,max:1})
     }
 
-    static GAND(indices,sources){
-        for(var i = 0; i < sources.length; i++)
-            if(!sources[i].length)
-                return []
-        return indices
-    }
-
-    static GOR(indices,sources){
-        for(var i = 0; i < sources.length; i++)
-            if(sources[i].length)
-                return indices
-        return []
+    static GAND(arrs){
+        // todo: optimize this method
+        const indices = {}
+        const seen = {}
+        for(var i = 0; i < arrs.length; i++){
+            var sdr = arrs[i]
+            var depthMap = SDR.DepthMap(sdr)
+            for(var j in depthMap){
+                const key = j + ':' + depthMap[j]
+                if(seen[key])
+                    indices[j] = depthMap[j]
+                seen[key] = true
+            }
+        }
+        const output = []
+        for(var i in indices)
+            for(var j = 0; j < indices[i]; j++)
+                output.push(parseInt(i))
+        return output
     }
 
     static Flatten(indices){

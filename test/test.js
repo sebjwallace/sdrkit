@@ -122,22 +122,13 @@ describe('SDR', () => {
         expect(sdr.xor([8,22,37,44,54,61,79,99])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
     })
 
-    it('should gate indices using OR', () => {
-        const a = [1,8,14,19,27,44,52,79]
-        const b = [8,22,37,44,54,61,79,99]
-        const c = [1,14,19,22,27,37,52,54,61,99]
-        expect(SDR.GOR(c,[a,b])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
-        expect(SDR.GOR(c,[a,[]])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
-        expect(SDR.GOR(c,[[],[]])).to.deep.equal([])
-    })
-
-    it('should gate indices using AND', () => {
-        const a = [1,8,14,19,27,44,52,79]
-        const b = [8,22,37,44,54,61,79,99]
-        const c = [1,14,19,22,27,37,52,54,61,99]
-        expect(SDR.GAND(c,[a,b])).to.deep.equal([1,14,19,22,27,37,52,54,61,99])
-        expect(SDR.GAND(c,[a,[]])).to.deep.equal([])
-        expect(SDR.GAND(c,[[],[]])).to.deep.equal([])
+    it('should perform AND operation on graded SDRs', () => {
+        let a = [1,1,2,2,3,4,4]
+        let b = [1,1,2,3,4,4]
+        expect(SDR.GAND([a,b])).to.deep.equal([1,1,3,4,4])
+        a = [1,1,1,2,2,2,2,3,3,3,3,3,4,4]
+        b = [1,1,1,2,2,3,4,4,4]
+        expect(SDR.GAND([a,b])).to.deep.equal([1,1,1])
     })
 
     it('should return a subsample of the origional index array', () => {
@@ -361,6 +352,30 @@ describe('SDRRepository', () => {
         repo.add(sdr3)
         const result = repo.sort([1,2,3,4])
         expect(result).to.deep.equal([sdr1,sdr2,sdr3,sdr4])
+    })
+
+    it('should sort by the most relevant sdr', () => {
+        const repo = new SDRRepository()
+        const sdr1 = [
+            1,2,3,4,5,6,7,8,
+            21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,
+            31,31,31,32,32,32,33,33,33,34,34,34,35,35,35,36,36,36,37,37,37,38,38,38,
+            85,85,85,85,150,150,150,150,338,338,338,338,399,399,399,399,599,599,599,599,739,739,739,739,805,805,805,805,968,968,968,968
+        ]
+        const sdr2 = [
+            1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,
+            21,21,21,22,22,22,23,23,23,24,24,24,25,25,25,26,26,26,27,27,27,28,28,28,
+            31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34,35,35,35,35,36,36,36,36,37,37,37,37,38,38,38,38
+        ]
+        repo.add(sdr2)
+        repo.add(sdr1)
+        const result = repo.sort([
+            1,2,3,4,5,6,7,8,
+            21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,
+            31,31,31,32,32,32,33,33,33,34,34,34,35,35,35,36,36,36,37,37,37,38,38,38,
+            64,64,64,64,244,244,244,244,294,294,294,294,414,414,414,414,533,533,533,533,684,684,684,684,880,880,880,880,918,918,918,918
+        ])
+        expect(result).to.deep.equal([sdr1,sdr2])
     })
 
 })
