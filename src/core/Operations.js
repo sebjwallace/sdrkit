@@ -41,6 +41,20 @@ module.exports = Ops = {
             if(sdr2[i])
                 d += 1 / (Math.abs(sdr1[i] - sdr2[i]) + 1)
         return d
+    },
+
+    diff(sdr1,sdr2){
+        let d = 0
+        let len1 = Object.keys(sdr1).length
+        let len2 = Object.keys(sdr2).length
+        const lead = len1 > len2 ? sdr1 : sdr2
+        const follow = len1 > len2 ? sdr2 : sdr1
+        for(var i in lead){
+            if(follow[i])
+                d += Math.abs(lead[i] - follow[i])
+            else d += lead[i]
+        }
+        return d
     }
 
 }

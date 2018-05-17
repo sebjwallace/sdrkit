@@ -26,7 +26,7 @@ module.exports = class {
             for(var j = 0; j < this.index[i].length; j++)
                 if(!seen[this.index[i][j]])
                     results.push(seen[this.index[i][j]] = this.sdrs[this.index[i][j]])
-        return results.sort((a,b) => Ops.sim(sdr,b) - Ops.sim(sdr,a))
+        return results.sort((a,b) => Ops.diff(sdr,b) - Ops.diff(sdr,a)).reverse()
     }
     
 }
